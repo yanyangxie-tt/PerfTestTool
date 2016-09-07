@@ -1,0 +1,17 @@
+requests==2.1.0
+BeautifulSoup
+Fabric==1.8.3
+paramiko==1.12.3
+psutil==2.1.0
+pycrypto==2.6.1
+xlrd==0.9.3
+xlutils==1.7.0
+xlwt==0.7.5
+Django==1.8
+MySQL-python==1.2.5
+celery==3.1.23
+pymongo==3.2.2
+pyDes==2.0.1
+python-memcached==1.57
+selenium==2.53.6
+APScheduler
