@@ -2,82 +2,18 @@
 # author: yanyang.xie@gmail.com
 
 import Queue
-import logging
 import os
 import string
 import sys
 import threading
 
-from utility import common_util, logger_util
-from utility.counter import Counter
-
 sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../.."))
-
-class PerfTestBase(object):
-    '''
-    Basic module for performance test
-    '''
-    def __init__(self, config_file, log_file, **kwargs):
-        '''Initialized configuration and logs with a properties file and log file
-        @param golden_config_file: will replace parameters in config file
-        
-        '''
-        self.config_file = config_file
-        self.log_file = log_file
-        self.log_level = 'DEBUG'
-        
-        if not os.path.exists(self.config_file) or not os.path.isfile(self.config_file):
-            raise Exception('Configuration file %s do not exist' % (self.config_file))
-            sys.exit(1)
-            
-        self.parameters = common_util.load_properties(self.config_file)
-        self.parameters.update(kwargs)
-        
-        if kwargs.has_key('golden_config_file'):
-            golden_config_file = kwargs.get('golden_config_file')
-            if os.path.exists(golden_config_file) and os.path.isfile(golden_config_file):
-                self.parameters.update(common_util.load_properties(golden_config_file))
-        
-        if self.parameters.has_key('log.level'):
-            self.log_level = self.parameters.get('log.level')
-        self.init_log()
-
-    def init_log(self):
-        logger_util.setup_logger(self.log_file, log_level=self.log_level)
-        self.logger = logging.getLogger()
-
-    def _has_attr(self, attr_name):
-        if not hasattr(self, attr_name):
-            return False
-        else:
-            return getattr(self, attr_name, None)
-
-    def _set_attr(self, attr_name, attr_value):
-        setattr(self, attr_name, attr_value)
-
-class APIPerfTestBase(PerfTestBase):
-    def __init__(self, config_file, log_file, **kwargs):
-        '''
-        @param config_file: configuration file, must be a properties file
-        @param log_file: log file absolute path
-        '''
-        super(APIPerfTestBase, self).__init__(config_file, log_file, **kwargs)
-        self.init_environment()
-    
-    def init_environment(self, **kwargs):
-        # setup your environment, such as counter, lock, recorder
-        pass
-    
-    def generate_url_list(self):
-        pass
-    
-    def do_load_test(self):
-        pass
-        
+from perf.test.model.perf_test import APIPerfTestBase
+from utility import common_util
+from utility.counter import Counter
 
 class VEXPerfTestBase(APIPerfTestBase):
     def __init__(self, config_file, log_file, **kwargs):
-        
         '''
         @param config_file: configuration file, must be a properties file
         @param log_file: log file absolute path
