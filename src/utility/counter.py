@@ -88,6 +88,9 @@ class Counter(object):
     
     def get_total_count(self):
         return self.counter_in_total
+    
+    def __repr__(self):
+        return self.dump()
 
 if __name__ == '__main__':
     c = Counter(['1000', '2000', '3000', '6000', ])

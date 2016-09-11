@@ -9,7 +9,7 @@ import os
 # formatter is a bundle of standard string
 log_format = logging.Formatter('%(asctime)s [%(filename)s] [line:%(lineno)4d] [%(levelname)s] %(message)s')
 rotate_file_size = 1000 * 1024 * 1024
-log_level_list = ['INFO', 'DEBUG', 'ERROR', 'WARNING']
+log_level_list = logging._levelNames.keys()
 
 def setup_logger(log_file, name=None, log_level='INFO', formatter=log_format, rotated_file_size=rotate_file_size, rotated_backup_file_number=5):
     log_dir = os.path.split(log_file)[0]

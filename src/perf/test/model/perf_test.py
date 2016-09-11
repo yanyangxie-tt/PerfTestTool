@@ -11,14 +11,12 @@ from utility import common_util, logger_util
 
 class PerfTestBase(object):
     '''Basic module for performance test'''
-    def __init__(self, config_file, log_file=None, **kwargs):
+    def __init__(self, config_file, log_file=None, log_level='DEBUG', **kwargs):
         '''Initialized configuration and logs with a properties file and log file
         @param golden_config_file: will replace parameters in config file
         
         '''
         self.config_file = config_file
-        self.log_file = log_file
-        self.log_level = 'DEBUG'
         
         self.list_sep = ','
         self.config_sep = '.'
@@ -39,6 +37,7 @@ class PerfTestBase(object):
             self.log_level = self.parameters.get('log.level')
         
         self.init_configred_parameters()
+        self.init_configred_parameters_default_value()
 
     def init_log(self, log_file, log_level):
         logger_util.setup_logger(log_file, log_level=log_level)
@@ -46,15 +45,28 @@ class PerfTestBase(object):
     
     def init_configred_parameters(self):
         ''' Read configured parameters and then set general parameters as object attribute '''
+        
         for p_key, p_value in self.parameters.items():
             key = p_key.replace(self.config_sep, '_')
                 
             if p_value.find(self.list_sep) > 0:
-                p_value = string.split(p_value, self.list_sep)
+                p_value = [self._transform_numeric_type(value)  for value in string.split(p_value, self.list_sep)]
             elif p_value and string.lower(p_value) == 'true':
                 p_value = True
+            else:
+                p_value = self._transform_numeric_type(p_value)
 
             setattr(self, key, p_value)
+    
+    def init_configred_parameters_default_value(self):
+        # initial 你的必须存在的参数的默认值，用方法self._set_attr()
+        pass
+    
+    def _transform_numeric_type(self, value):
+        try:
+            return int(value)
+        except:
+            return value
 
     def _has_attr(self, attr_name):
         if not hasattr(self, attr_name):
@@ -62,7 +74,7 @@ class PerfTestBase(object):
         else:
             return getattr(self, attr_name, None)
 
-    def _set_attr(self, attr_name, attr_value, update=True):
+    def _set_attr(self, attr_name, attr_value, update=False):
         if self._has_attr(attr_name):
             if update:
                 setattr(self, attr_name, attr_value)
