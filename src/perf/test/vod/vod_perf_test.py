@@ -67,9 +67,11 @@ class VODPerfTest(VEXPerfTestBase):
                 task = self.task_queue.get(True, 6)
                 
                 # schedule a new event for index request
-                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=0)
-                self.logger.debug('Put one task onto task schedule')
-                # self.task_sched.add_date_job(do_index_request, start_date, args=(item,))
+                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
+                # self.logger.debug('Put one task onto task schedule')
+                
+                # 这行有问题
+                self.task_consumer_sched.add_date_job(self.do_vod_asset_call, start_date, args=(task,))
             except Exception, e:
                 self.logger.error('Failed to fetch task from task queue', e)
     
@@ -84,7 +86,7 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.info('Warm-up period is %s minute, warm-up list is:%s' % (warm_up_period_minute, warm_up_minute_list))
         else:
             self.logger.debug('Warm-up period is not set or its value <1, not do warm up')
-            return []
+            return [], []
         
         # to VOD, export warm up rate by seconds
         for t in warm_up_minute_list:

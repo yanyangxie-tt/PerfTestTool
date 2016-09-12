@@ -2,18 +2,18 @@
 # author: yanyang.xie@gmail.com
 
 import Queue
+import logging
 import string
 import threading
 import time
 
 from apscheduler.scheduler import Scheduler
-
-from perf.test.model.perf_test import PerfTestBase
-from utility import vex_util, time_util
+from utility import vex_util, time_util, logger_util
 from utility.counter import Counter
 
+from perf.test.model.perf_test import Configurations
 
-class VEXPerfTestBase(PerfTestBase):
+class VEXPerfTestBase(Configurations):
     def __init__(self, config_file, current_process_index=0, **kwargs):
         '''
         @param config_file: configuration file, must be a properties file
@@ -61,6 +61,17 @@ class VEXPerfTestBase(PerfTestBase):
         self.set_test_machine_conccurent_request_number()
         self.set_processs_concurrent_request_number()
     
+    def init_result_dir(self):
+        # To multiple process, each process has its private log， need use a flag to generate its private result dir. Now we use current_process_index
+        self.result_dir = vex_util.get_process_result_tmp_dir(self.test_result_temp_dir, self.test_case_name, self.current_process_index)
+        self.test_result_report_delta_dir = self.result_dir + self.test_result_report_delta_dir
+        self.test_result_report_error_dir = self.result_dir + self.test_result_report_error_dir
+        self.test_result_report_traced_dir = self.result_dir + self.test_result_report_traced_dir
+
+    def init_log(self, log_file, log_level, log_name=None):
+        logger_util.setup_logger(log_file, name=log_name, log_level=log_level)
+        self.logger = logging.getLogger(name=log_name)
+    
     def init_sched(self):
         self.init_task_consumer_sched()
         self.init_task_dispatcher_sched()
@@ -85,14 +96,6 @@ class VEXPerfTestBase(PerfTestBase):
         self.bitrate_record_queue = Queue.Queue(10000)
         self.error_record_queue = Queue.Queue(100000)
     
-    def init_result_dir(self):
-        # To multiple process, each process has its private log， need use a flag to generate its private result dir. Now we use current_process_index
-        self.result_dir = vex_util.get_process_result_tmp_dir(self.test_result_temp_dir, self.test_case_name, self.current_process_index)
-        self.test_result_report_delta_dir = self.result_dir + self.test_result_report_delta_dir
-        self.test_result_report_error_dir = self.result_dir + self.test_result_report_error_dir
-        self.test_result_report_traced_dir = self.result_dir + self.test_result_report_traced_dir
-
-    # def init_vod_sched(self):
     def init_task_consumer_sched(self):
         gconfig = {'apscheduler.threadpool.core_threads':self.task_apschdule_threadpool_core_threads,
                    'apscheduler.threadpool.max_threads':self.task_apschdule_threadpool_max_threads,
