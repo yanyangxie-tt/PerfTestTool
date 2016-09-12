@@ -6,8 +6,7 @@ import time
 
 from perf.test.model.task import VEXScheduleReqeustsTask
 from perf.test.model.vex_perf_test import VEXPerfTestBase
-from utility import time_util
-
+from utility import time_util, ip_util
 
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_number=1, **kwargs):
@@ -16,6 +15,8 @@ class VODPerfTest(VEXPerfTestBase):
         @param log_file: log file absolute path
         '''
         super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_number, **kwargs)
+        self.test_type_options = ['VOD_T6', 'OTHER:VOD']
+        self.index_url_format = 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00'
 
     def task_generater(self):
         while True:
@@ -55,9 +56,12 @@ class VODPerfTest(VEXPerfTestBase):
         self.logger.info('exeute task in %s' % (task.get_start_date()))
     
     def _generate_task(self):
-        # generate task by VOD url formatter
-        task = VEXScheduleReqeustsTask('http://www.baidu.com', '192.168.1.1', 'zone1', 'location1')
-        return task
+        content_name = self._get_random_content()
+        index_url = self.index_url_format % (content_name, content_name, self.test_case_type)
+        client_ip = ip_util.generate_random_ip()
+        location = self._get_random_location()
+        zone = self._get_random_zone()
+        return VEXScheduleReqeustsTask(index_url, client_ip, location, zone)
     
     def _fetch_task_and_add_to_consumer(self):
         # Fetch task from task queue, and add it to task consumer

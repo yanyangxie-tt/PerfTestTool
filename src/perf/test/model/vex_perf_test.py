@@ -3,15 +3,17 @@
 
 import Queue
 import logging
+import random
 import string
 import threading
 import time
 
 from apscheduler.scheduler import Scheduler
+
+from perf.test.model.perf_test import Configurations
 from utility import vex_util, time_util, logger_util
 from utility.counter import Counter
 
-from perf.test.model.perf_test import Configurations
 
 class VEXPerfTestBase(Configurations):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -30,6 +32,9 @@ class VEXPerfTestBase(Configurations):
             self._set_attr('log_name', 'vex')
         else:
             self._set_attr('log_name', None)
+            
+        self._set_attr('test_client_zone_number', 500)
+        self._set_attr('test_client_location_number', 500)
         
         self._set_attr('test_result_log_file', 'load-test.log')
         self._set_attr('test_execute_process_number', 1)
@@ -60,6 +65,7 @@ class VEXPerfTestBase(Configurations):
         self.init_queue()
         self.set_test_machine_conccurent_request_number()
         self.set_processs_concurrent_request_number()
+        self.set_entertainment_contents()
     
     def init_result_dir(self):
         # To multiple process, each process has its private log， need use a flag to generate its private result dir. Now we use current_process_index
@@ -141,7 +147,7 @@ class VEXPerfTestBase(Configurations):
     
     def set_test_machine_conccurent_request_number(self):
         if not hasattr(self, 'test_machine_hosts'):
-            self.logger.error('test.machine.hosts must be configured.')
+            self.logger.fatal('test.machine.hosts must be configured.')
             exit(1)
         
         test_machine_inistace_size = len(self.test_machine_hosts)
@@ -154,6 +160,17 @@ class VEXPerfTestBase(Configurations):
        
         self.current_processs_concurrent_request_number = current_number
     
+    def set_entertainment_contents(self):
+        if not hasattr(self, 'test_content_names'):
+            self.logger.fatal('Test content names must be set. for example: "test.content.names=vod_test_[1~100]"')
+            exit(1)
+        
+        self.test_content_name_list = vex_util.get_test_content_name_list(self.test_content_names, offset=0)
+        if len(self.test_content_name_list) > 1:
+            self.logger.info('Test content names are from %s to %s' % (self.test_content_name_list[0], self.test_content_name_list[-1]))
+        else:
+            self.logger.info('Test content name is %s' % (self.test_content_name_list[0]))
+            
     def prepare_task(self):
         self.logger.debug('Start to prepare task')
         self.task_generater = threading.Thread(target=self.task_generater)
@@ -175,6 +192,25 @@ class VEXPerfTestBase(Configurations):
         time.sleep(10)
         self.logger.info('#' * 100)
         self.logger.info('Finish to do performance test at %s' % (time_util.get_local_now()))
+    
+    def _get_random_content(self):
+        i = random.randint(0, len(self.test_content_name_list))
+        return self.test_content_name_list[i]
+    
+    def _get_random_zone(self):
+        i = random.randint(0, self.test_client_zone_number)
+        return 'zone-%s' % (i)
+    
+    def _get_random_location(self):
+        i = random.randint(0, self.test_client_location_number)
+        return 'location-%s' % (i)
+    
+    def _get_test_type(self):
+        if not hasattr(self, 'test_case_type'):
+            self.logger.fatal('Test case type must be set. for example: "test.case.type=VOD_T6"')
+            exit(1)
+        
+        return self.test_case_type
     
     def _generate_warm_up_request_list(self, total_number, warm_up_period_minute):
         increased_per_second = total_number / warm_up_period_minute if total_number > warm_up_period_minute else 1

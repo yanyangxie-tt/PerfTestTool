@@ -4,6 +4,7 @@
 import os
 import string
 import sys
+from random import random
 
 
 def get_config_value_by_key(config_dict, key, default_value=None):
