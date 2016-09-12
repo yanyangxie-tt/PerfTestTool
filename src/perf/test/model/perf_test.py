@@ -39,13 +39,12 @@ class PerfTestBase(object):
         self.init_configred_parameters()
         self.init_configred_parameters_default_value()
 
-    def init_log(self, log_file, log_level):
-        logger_util.setup_logger(log_file, log_level=log_level)
-        self.logger = logging.getLogger()
+    def init_log(self, log_file, log_level, log_name=None):
+        logger_util.setup_logger(log_file, name=log_name, log_level=log_level)
+        self.logger = logging.getLogger(name=log_name)
     
     def init_configred_parameters(self):
         ''' Read configured parameters and then set general parameters as object attribute '''
-        
         for p_key, p_value in self.parameters.items():
             key = p_key.replace(self.config_sep, '_')
                 
@@ -59,7 +58,7 @@ class PerfTestBase(object):
             setattr(self, key, p_value)
     
     def init_configred_parameters_default_value(self):
-        # initial 你的必须存在的参数的默认值，用方法self._set_attr()
+        # initial your parameters which is required a default value using self._set_attr()
         pass
     
     def _transform_numeric_type(self, value):

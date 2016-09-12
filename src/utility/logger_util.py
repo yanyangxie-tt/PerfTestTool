@@ -41,7 +41,7 @@ def setup_logger_from_config_file(log_config_file, name=None, log_level='DEBUG')
 
     '''
         #logger.conf
-        
+        # root is for all, simpleExample is to your app
         [loggers]
         keys=root,simpleExample
         
