@@ -10,10 +10,10 @@ import time
 
 from apscheduler.scheduler import Scheduler
 
-from perf.test.model.perf_test import Configurations
-from utility import vex_util, time_util, logger_util
+from perf.test.model.configuration import Configurations
+from perf.test.model.task import VEXScheduleReqeustsTask
+from utility import vex_util, time_util, logger_util, ip_util
 from utility.counter import Counter
-
 
 class VEXPerfTestBase(Configurations):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -26,7 +26,11 @@ class VEXPerfTestBase(Configurations):
         self.init_environment()
         self.init_sched()
     
-    def init_configred_parameters_default_value(self):
+    def init_configured_parameters_default_value(self):
+        self.set_vex_common_default_value()
+        self.set_compontent_private_default_value()
+    
+    def set_vex_common_default_value(self):
         # Default value of log.export.thirdparty is False, not to export thirdparty logs.
         if self._has_attr('log_export_thirdparty') and getattr(self, 'log_export_thirdparty'):
             self._set_attr('log_name', 'vex')
@@ -48,6 +52,9 @@ class VEXPerfTestBase(Configurations):
         self._set_attr('task_apschdule_threadpool_max_threads', 100, False)
         self._set_attr('task_apschdule_queue_max', 100000, False)
         self._set_attr('task_apschdule_tqueue_misfire_time', 300, False)
+    
+    def set_compontent_private_default_value(self):
+        pass
     
     def init_current_process_index(self, process_index):
         if type(process_index) is not int:
@@ -194,7 +201,7 @@ class VEXPerfTestBase(Configurations):
         self.logger.info('Finish to do performance test at %s' % (time_util.get_local_now()))
     
     def _get_random_content(self):
-        i = random.randint(0, len(self.test_content_name_list))
+        i = random.randint(0, len(self.test_content_name_list) - 1)
         return self.test_content_name_list[i]
     
     def _get_random_zone(self):
@@ -211,6 +218,14 @@ class VEXPerfTestBase(Configurations):
             exit(1)
         
         return self.test_case_type
+    
+    def _generate_task(self):
+        content_name = self._get_random_content()
+        index_url = self.index_url_format % (content_name, content_name, self.test_case_type)
+        client_ip = ip_util.generate_random_ip()
+        location = self._get_random_location()
+        zone = self._get_random_zone()
+        return VEXScheduleReqeustsTask(index_url, client_ip, location, zone)
     
     def _generate_warm_up_request_list(self, total_number, warm_up_period_minute):
         increased_per_second = total_number / warm_up_period_minute if total_number > warm_up_period_minute else 1

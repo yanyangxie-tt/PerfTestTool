@@ -35,10 +35,10 @@ class Configurations(object):
             if os.path.exists(golden_config_file) and os.path.isfile(golden_config_file):
                 self.parameters.update(common_util.load_properties(golden_config_file))
         
-        self.init_configred_parameters()
-        self.init_configred_parameters_default_value()
+        self.init_configured_parameters()
+        self.init_configured_parameters_default_value()
     
-    def init_configred_parameters(self):
+    def init_configured_parameters(self):
         ''' Read configured parameters and then set general parameters as object attribute '''
         for p_key, p_value in self.parameters.items():
             key = p_key.replace(self.config_sep, '_')
@@ -52,7 +52,7 @@ class Configurations(object):
 
             setattr(self, key, p_value)
     
-    def init_configred_parameters_default_value(self):
+    def init_configured_parameters_default_value(self):
         # initial your parameters which is required a default value using self._set_attr()
         pass
     

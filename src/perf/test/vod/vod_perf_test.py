@@ -4,19 +4,20 @@
 import os
 import time
 
-from perf.test.model.task import VEXScheduleReqeustsTask
 from perf.test.model.vex_perf_test import VEXPerfTestBase
-from utility import time_util, ip_util
+from utility import time_util
 
 class VODPerfTest(VEXPerfTestBase):
-    def __init__(self, config_file, current_process_number=1, **kwargs):
+    def __init__(self, config_file, current_process_number=0, **kwargs):
         '''
         @param config_file: configuration file, must be a properties file
         @param log_file: log file absolute path
         '''
         super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_number, **kwargs)
-        self.test_type_options = ['VOD_T6', 'OTHER:VOD']
-        self.index_url_format = 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00'
+    
+    def set_compontent_private_default_value(self):
+        self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
+        self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
 
     def task_generater(self):
         while True:
@@ -33,10 +34,10 @@ class VODPerfTest(VEXPerfTestBase):
             exit(0)
         
         if hasattr(self, 'test_warmup_period_minute'):
-            warm_up_second_list, warm_up_minute_list = self._generate_warm_up_list()
+            warm_up_second_list = self._generate_warm_up_list()
             # generate warm-up rate
             if len(warm_up_second_list) > 0:
-                self.logger.debug('Warm-up process, warm-up minute is %s, warm rate %s' % (self.test_warmup_period_minute, self.warm_up_minute_list))
+                self.logger.debug('Warm-up process, warm-up %s minute, warm rate %s' % (self.test_warmup_period_minute, [i for i in warm_up_second_list if i / 60 == 0]))
                 # Fetch tasks by the number of warm_up_second_list, and then add it to task consumer(task sched)
                 for task_number in warm_up_second_list:
                     self.logger.info('Warm-up stage: Put %s task into task queue' % (task_number))
@@ -45,7 +46,7 @@ class VODPerfTest(VEXPerfTestBase):
                         task = self.task_queue.get(True, timeout=10)
                         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=3)
                         task.set_start_date(start_date)
-                        self.task_consumer_sched.add_date_job(self.do_vod_asset_call, start_date, args=(task))
+                        self.task_consumer_sched.add_date_job(self.do_vod_asset_call, start_date, args=(task,))
                         index += 1
                     time.sleep(1)
         
@@ -53,15 +54,7 @@ class VODPerfTest(VEXPerfTestBase):
         self.dispatch_task_sched.add_interval_job(self._fetch_task_and_add_to_consumer, seconds=1)
     
     def do_vod_asset_call(self, task):
-        self.logger.info('exeute task in %s' % (task.get_start_date()))
-    
-    def _generate_task(self):
-        content_name = self._get_random_content()
-        index_url = self.index_url_format % (content_name, content_name, self.test_case_type)
-        client_ip = ip_util.generate_random_ip()
-        location = self._get_random_location()
-        zone = self._get_random_zone()
-        return VEXScheduleReqeustsTask(index_url, client_ip, location, zone)
+        self.logger.info('exeute task at %s. task is %s' % (task.get_start_date(), str(task)))
     
     def _fetch_task_and_add_to_consumer(self):
         # Fetch task from task queue, and add it to task consumer
@@ -72,6 +65,7 @@ class VODPerfTest(VEXPerfTestBase):
                 
                 # schedule a new event for index request
                 start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
+                task.set_start_date(start_date)
                 # self.logger.debug('Put one task onto task schedule')
                 
                 # 这行有问题
@@ -84,20 +78,20 @@ class VODPerfTest(VEXPerfTestBase):
         if not warm_up_period_minute:
             return []
         
-        warm_up_minute_list, warm_up_second_list = [], []
+        warm_up_second_list = []
         if warm_up_period_minute and warm_up_period_minute > 1:
             warm_up_minute_list = self._generate_warm_up_request_list(self.current_processs_concurrent_request_number, warm_up_period_minute)
             self.logger.info('Warm-up period is %s minute, warm-up list is:%s' % (warm_up_period_minute, warm_up_minute_list))
         else:
             self.logger.debug('Warm-up period is not set or its value <1, not do warm up')
-            return [], []
+            return []
         
         # to VOD, export warm up rate by seconds
         for t in warm_up_minute_list:
             for i in range(0, 1 * 60):
                 warm_up_second_list.append(t)
         
-        return warm_up_second_list, warm_up_minute_list
+        return warm_up_second_list
 
 if __name__ == '__main__':
     here = os.path.dirname(os.path.realpath(__file__))
