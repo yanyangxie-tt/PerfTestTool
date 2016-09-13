@@ -4,7 +4,6 @@
 import Queue
 import logging
 import random
-import string
 import threading
 import time
 
@@ -47,6 +46,10 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self._set_attr('test_client_request_timeout', 7)
         self._set_attr('test_client_request_retry_count', 3)
         self._set_attr('test_client_request_retry_delay', 1)
+        
+        self._set_attr('test_bitrate_request_number', 1)
+        self._set_attr('test_bitrate_serial', False)
+        self._set_attr('test_bitrate_serial_time', 300)
         
         self._set_attr('test_result_log_file', 'load-test.log')
         self._set_attr('test_execute_process_number', 1)
@@ -276,7 +279,8 @@ class VEXPerfTestBase(Configurations, VEXRequest):
                 time.sleep(30)
             
             self.logger.debug('Flush statistics info into local file.')
-            self.logger.debug(self.index_counter)
+            self.logger.info(self.index_counter)
+            self.logger.info(self.bitrate_counter)
             # export_summary_info(load_start_date)
             # export_traced_response_info()
             # if check_response: export_error_response_info()

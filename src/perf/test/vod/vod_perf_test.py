@@ -34,12 +34,13 @@ class VODPerfTest(VEXPerfTestBase):
                 return
             else:
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=False)
-                self.logger.debug('%s, Index response for task[%s]:\n%s' % (response.status_code, task, response_text,))
+                self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
-            bitrate_url_list = manifest_util.get_bitrate_urls(response_text)
-            for bitrate_url in bitrate_url_list:
+            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number)
+            for i, bitrate_url in enumerate(bitrate_url_list):
                 b_task = task.clone()
-                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=200)
+                delta_milliseconds = self.test_bitrate_serial_time * (i + 1) if self.test_bitrate_serial else self.test_bitrate_serial_time
+                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=delta_milliseconds)
                 b_task.set_bitrate_url(bitrate_url)
                 b_task.set_start_date(start_date)
                 self.logger.debug('Schedule bitrate request. task:%s' % (b_task))
@@ -49,15 +50,25 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.error('Failed to index request.', e)
         
     def do_bitrate(self, task):
-        self.logger.debug('Execute bitrate: %s' % (str(task)))
-        response, used_time = self._get_vex_response(task, tag='Bitrate')
-        if response is None:
-            return
-        
-        response_text = response.text
-        self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
-    
-    # 将来用decrator代替
+        try:
+            self.logger.info('Execute bitrate: %s' % (str(task)))
+            response, used_time = self._get_vex_response(task, tag='Bitrate')
+            response_text = response.text
+            
+            if response is None:
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
+                return
+            elif response.status_code != 200:
+                self.logger.warn('Failed to bitrate request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
+                return
+            else:
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=False)
+                self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
+        except Exception, e:
+            self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error=True)
+            self.logger.error('Failed to bitrate request.', e)
+            
     def _get_vex_response(self, task, tag='Index'):
         response, used_time = None, 0
         try:

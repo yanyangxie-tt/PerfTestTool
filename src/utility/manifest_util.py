@@ -34,5 +34,5 @@ def get_bitrate_urls(index_response, birate_number=1, use_iframe=True, use_sap=T
         else:
             bite_url_list.append(line.replace('\r', ''))
     random.shuffle(bite_url_list)
-    return bite_url_list[0:birate_number + 1] if len(bite_url_list) > birate_number else bite_url_list
+    return bite_url_list[0:birate_number] if len(bite_url_list) > birate_number else bite_url_list
 
