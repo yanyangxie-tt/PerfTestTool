@@ -27,12 +27,15 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.init_current_process_index(current_process_index)
         self.init_environment()
         self.init_sched()
+        self.init_load_test_start_date()
     
     def init_configured_parameters_default_value(self):
         self.set_vex_common_default_value()
         self.set_compontent_private_default_value()
     
     def set_vex_common_default_value(self):
+        self._set_attr('test_case_survival', 600)
+        
         # Default value of log.export.thirdparty is False, not to export thirdparty logs.
         if self._has_attr('log_export_thirdparty') and getattr(self, 'log_export_thirdparty'):
             self._set_attr('log_name', 'vex')
@@ -101,6 +104,9 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.init_task_dispatcher_sched()
         self.init_report_sched()
         self.init_psn_sched()
+        
+    def init_load_test_start_date(self):
+        self.load_test_start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
     
     def init_vex_counter(self, **kwargs):
         default_counters = '0,1000,3000,6000,12000'
@@ -146,22 +152,21 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.report_sched.start()
     
     def init_psn_sched(self):
-        if self.psn_send or self.psn_fake_send or self.psn_endall_send:
-            # self.logger.debug('Init PSN scheduler. send psn:%s, send fake psn:%s, send end all:%s' % (self.psn_send, self.self.psn_fake_send, self.psn_endall_send))
-            self._set_attr('psn_apschdule_threadpool_core_threads', 100, False)
-            self._set_attr('psn_apschdule_threadpool_max_threads', 100, False)
-            self._set_attr('psn_apschdule_queue_max', 100000, False)
-            self._set_attr('psn_apschdule_tqueue_misfire_time', 300, False)
-            
-            gconfig = {'apscheduler.threadpool.core_threads':self.psn_apschdule_threadpool_core_threads,
-                       'apscheduler.threadpool.max_threads':self.psn_apschdule_threadpool_max_threads,
-                       'apscheduler.threadpool.keepalive':120,
-                       'apscheduler.misfire_grace_time':self.psn_apschdule_queue_max,
-                       'apscheduler.coalesce':True,
-                       'apscheduler.max_instances':self.psn_apschdule_tqueue_misfire_time}
-            
-            self.psn_sched = self._init_apsched(gconfig)
-            self.psn_sched.start()
+        # if self.psn_send or self.psn_fake_send or self.psn_endall_send:
+        self._set_attr('psn_apschdule_threadpool_core_threads', 100, False)
+        self._set_attr('psn_apschdule_threadpool_max_threads', 100, False)
+        self._set_attr('psn_apschdule_queue_max', 100000, False)
+        self._set_attr('psn_apschdule_tqueue_misfire_time', 300, False)
+        
+        gconfig = {'apscheduler.threadpool.core_threads':self.psn_apschdule_threadpool_core_threads,
+                   'apscheduler.threadpool.max_threads':self.psn_apschdule_threadpool_max_threads,
+                   'apscheduler.threadpool.keepalive':120,
+                   'apscheduler.misfire_grace_time':self.psn_apschdule_queue_max,
+                   'apscheduler.coalesce':True,
+                   'apscheduler.max_instances':self.psn_apschdule_tqueue_misfire_time}
+        
+        self.psn_sched = self._init_apsched(gconfig)
+        self.psn_sched.start()
     
     def set_test_machine_conccurent_request_number(self):
         if not hasattr(self, 'test_machine_hosts'):
@@ -249,11 +254,28 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         return sched
 
     def run(self):
-        print '#' * 100
-        self.logger.info('Start to do performance test at %s' % (time_util.get_local_now()))
-        self.prepare_task()
-        self.dispatch_task()
+        try:
+            self.logger.info('Start to do performance test at %s' % (time_util.get_local_now()))
+            self.prepare_task()
+            self.dispatch_task()
         
-        time.sleep(100000)
-        self.logger.info('#' * 100)
-        self.logger.info('Finish to do performance test at %s' % (time_util.get_local_now()))
+            time.sleep(2)
+            while(True):
+                current_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
+                if time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date) >= self.test_case_survival:
+                    self.logger.info('#' * 100)
+                    self.logger.info('Reach load test time limitation %s. Shutdown sched' % (self.test_case_survival))
+                    self.task_consumer_sched.shutdown()
+                    self.dispatch_task_sched.shutdown()
+                    self.report_sched.shutdown()
+                    self.psn_sched.shutdown()
+                    break
+                time.sleep(30)
+            
+            self.logger.debug('Flush statistics info into local file.')
+            # export_summary_info(load_start_date)
+            # export_traced_response_info()
+            # if check_response: export_error_response_info()
+            self.logger.info('Load test finished at %s' % (current_date))
+        except Exception, e:
+            self.logger.fatal('Fatal exception occurs, stop the load test.', e)

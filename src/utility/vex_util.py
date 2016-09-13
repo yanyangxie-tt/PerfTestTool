@@ -33,7 +33,6 @@ def get_test_content_name_list(content_names, offset=0):
 def get_test_client_ip_latest_segment_range(range_string='0~255'):
     p = r'^(\d+)~(\d+)$'  # '0~255'
     rs = re.findall(p, range_string)
-    print rs[0]
     if len(rs) > 0:
         return [i for i in range(int(rs[0][0]), 1 + int(rs[0][1]))]
     else:
