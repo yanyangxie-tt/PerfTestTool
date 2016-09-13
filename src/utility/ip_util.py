@@ -14,7 +14,10 @@ def ip2number(n):
 def number2ip(ip):
     return '.'.join([str(ip / (256 ** i) % 256) for i in range(3, -1, -1)])
 
-def generate_random_ip(ip_segment_index=3, ip_segment_range=[0, 255]):
+def generate_random_ip(ip_segment_index=3, ip_segment_range=[1, 2, 3]):
+    if len(ip_segment_range) is None or len(ip_segment_range) == 0:
+        return
+    
     # if ip_segment_index is set, will replace its value by a random value in ip_segment_range
     rip = number2ip(10000 * random.randint(1, 100000) + random.randint(0, 1000000000))
     r_ip_segments = rip.split('.')

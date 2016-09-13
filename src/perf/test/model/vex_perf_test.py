@@ -12,10 +12,12 @@ from apscheduler.scheduler import Scheduler
 
 from perf.test.model.configuration import Configurations
 from perf.test.model.task import VEXScheduleReqeustsTask
+from perf.test.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util
 from utility.counter import Counter
 
-class VEXPerfTestBase(Configurations):
+
+class VEXPerfTestBase(Configurations, VEXRequest):
     def __init__(self, config_file, current_process_index=0, **kwargs):
         '''
         @param config_file: configuration file, must be a properties file
@@ -40,6 +42,10 @@ class VEXPerfTestBase(Configurations):
         self._set_attr('test_client_zone_number', 500)
         self._set_attr('test_client_location_number', 500)
         
+        self._set_attr('test_client_request_timeout', 7)
+        self._set_attr('test_client_request_retry_count', 3)
+        self._set_attr('test_client_request_retry_delay', 1)
+        
         self._set_attr('test_result_log_file', 'load-test.log')
         self._set_attr('test_execute_process_number', 1)
         
@@ -52,6 +58,11 @@ class VEXPerfTestBase(Configurations):
         self._set_attr('task_apschdule_threadpool_max_threads', 100, False)
         self._set_attr('task_apschdule_queue_max', 100000, False)
         self._set_attr('task_apschdule_tqueue_misfire_time', 300, False)
+        
+        if hasattr(self, 'test_client_vip_latest_segment_range'):
+            self.ip_segment_range = vex_util.get_test_client_ip_latest_segment_range(self.test_client_vip_latest_segment_range)
+        else:
+            self.ip_segment_range = [i for i in range(0, 256)]
     
     def set_compontent_private_default_value(self):
         pass
@@ -190,16 +201,6 @@ class VEXPerfTestBase(Configurations):
     def dispatch_task(self):
         pass
     
-    def run(self):
-        print '#' * 100
-        self.logger.info('Start to do performance test at %s' % (time_util.get_local_now()))
-        self.prepare_task()
-        self.dispatch_task()
-        
-        time.sleep(10)
-        self.logger.info('#' * 100)
-        self.logger.info('Finish to do performance test at %s' % (time_util.get_local_now()))
-    
     def _get_random_content(self):
         i = random.randint(0, len(self.test_content_name_list) - 1)
         return self.test_content_name_list[i]
@@ -222,7 +223,7 @@ class VEXPerfTestBase(Configurations):
     def _generate_task(self):
         content_name = self._get_random_content()
         index_url = self.index_url_format % (content_name, content_name, self.test_case_type)
-        client_ip = ip_util.generate_random_ip()
+        client_ip = ip_util.generate_random_ip(ip_segment_range=self.ip_segment_range)
         location = self._get_random_location()
         zone = self._get_random_zone()
         return VEXScheduleReqeustsTask(index_url, client_ip, location, zone)
@@ -246,3 +247,13 @@ class VEXPerfTestBase(Configurations):
         self.logger.debug('task schedule parameters: %s' % (gconfig))
         sched.configure(gconfig)
         return sched
+
+    def run(self):
+        print '#' * 100
+        self.logger.info('Start to do performance test at %s' % (time_util.get_local_now()))
+        self.prepare_task()
+        self.dispatch_task()
+        
+        time.sleep(100000)
+        self.logger.info('#' * 100)
+        self.logger.info('Finish to do performance test at %s' % (time_util.get_local_now()))

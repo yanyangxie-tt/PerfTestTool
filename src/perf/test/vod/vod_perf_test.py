@@ -5,7 +5,7 @@ import os
 import time
 
 from perf.test.model.vex_perf_test import VEXPerfTestBase
-from utility import time_util
+from utility import time_util, manifest_util
 
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_number=0, **kwargs):
@@ -18,6 +18,59 @@ class VODPerfTest(VEXPerfTestBase):
     def set_compontent_private_default_value(self):
         self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
         self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
+    
+    # counter 尝试采用切面？
+    def do_index(self, task):
+        self.logger.debug('Execute index: %s' % (str(task)))
+        response = self._get_vex_response(task, tag='Index')
+        response_text = response.text
+        
+        if response is None:
+            return
+        elif response.status_code != 200:
+            self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+            return
+        else:
+            self.logger.debug('%s, Index response for task[%s]:\n%s' % (response.status_code, task, response_text,))
+        
+        bitrate_url_list = manifest_util.get_bitrate_urls(response_text)
+        for bitrate_url in bitrate_url_list:
+            b_task = task.clone()
+            start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=200)
+            b_task.set_bitrate_url(bitrate_url)
+            b_task.set_start_date(start_date)
+            self.logger.debug('Schedule bitrate request. task:%s' % (b_task))
+            self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+        
+    def do_bitrate(self, task):
+        self.logger.debug('Execute bitrate: %s' % (str(task)))
+        response = self._get_vex_response(task, tag='Bitrate')
+        if response is None:
+            return
+        
+        response_text = response.text
+        self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
+    
+    # 将来用decrator代替
+    def _get_vex_response(self, task, tag='Index'):
+        response = None
+        try:
+            response = self.get_response(task, self.test_client_request_timeout)
+        except Exception, e:
+            self.logger.error('Failed to do %s task. %s' % (tag, task,), e)
+            
+            mtries = self.test_client_request_retry_count
+            retry_count = 1
+            while mtries > 1:
+                time.sleep(self.test_client_request_retry_delay)
+                try:
+                    self.logger.debug('Retry index, %s time. task:[%s]' % (retry_count, task))
+                    response = self.get_response(task, self.test_client_request_timeout)
+                    return response
+                except Exception, e:
+                    self.logger.error('Retry index failed, %s time. task:[%s]' % (retry_count, task))
+                    mtries -= 1
+        return response
 
     def task_generater(self):
         while True:
@@ -46,15 +99,12 @@ class VODPerfTest(VEXPerfTestBase):
                         task = self.task_queue.get(True, timeout=10)
                         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=3)
                         task.set_start_date(start_date)
-                        self.task_consumer_sched.add_date_job(self.do_vod_asset_call, start_date, args=(task,))
+                        self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
                         index += 1
                     time.sleep(1)
         
         self.logger.debug('Start to do performance with max current request %s of this process' % (self.current_processs_concurrent_request_number))
         self.dispatch_task_sched.add_interval_job(self._fetch_task_and_add_to_consumer, seconds=1)
-    
-    def do_vod_asset_call(self, task):
-        self.logger.info('exeute task at %s. task is %s' % (task.get_start_date(), str(task)))
     
     def _fetch_task_and_add_to_consumer(self):
         # Fetch task from task queue, and add it to task consumer
@@ -62,14 +112,9 @@ class VODPerfTest(VEXPerfTestBase):
         for i in range(0, self.current_processs_concurrent_request_number):
             try:
                 task = self.task_queue.get(True, 6)
-                
-                # schedule a new event for index request
                 start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
                 task.set_start_date(start_date)
-                # self.logger.debug('Put one task onto task schedule')
-                
-                # 这行有问题
-                self.task_consumer_sched.add_date_job(self.do_vod_asset_call, start_date, args=(task,))
+                self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
             except Exception, e:
                 self.logger.error('Failed to fetch task from task queue', e)
     
