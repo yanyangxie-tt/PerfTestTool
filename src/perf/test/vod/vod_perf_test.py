@@ -19,32 +19,38 @@ class VODPerfTest(VEXPerfTestBase):
         self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
         self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
     
-    # counter 尝试采用切面？
     def do_index(self, task):
-        self.logger.debug('Execute index: %s' % (str(task)))
-        response = self._get_vex_response(task, tag='Index')
-        response_text = response.text
-        
-        if response is None:
-            return
-        elif response.status_code != 200:
-            self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
-            return
-        else:
-            self.logger.debug('%s, Index response for task[%s]:\n%s' % (response.status_code, task, response_text,))
-        
-        bitrate_url_list = manifest_util.get_bitrate_urls(response_text)
-        for bitrate_url in bitrate_url_list:
-            b_task = task.clone()
-            start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=200)
-            b_task.set_bitrate_url(bitrate_url)
-            b_task.set_start_date(start_date)
-            self.logger.debug('Schedule bitrate request. task:%s' % (b_task))
-            self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+        try:
+            self.logger.debug('Execute index: %s' % (str(task)))
+            response, used_time = self._get_vex_response(task, tag='Index')
+            response_text = response.text
+            
+            if response is None:
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
+                return
+            elif response.status_code != 200:
+                self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
+                return
+            else:
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=False)
+                self.logger.debug('%s, Index response for task[%s]:\n%s' % (response.status_code, task, response_text,))
+            
+            bitrate_url_list = manifest_util.get_bitrate_urls(response_text)
+            for bitrate_url in bitrate_url_list:
+                b_task = task.clone()
+                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=200)
+                b_task.set_bitrate_url(bitrate_url)
+                b_task.set_start_date(start_date)
+                self.logger.debug('Schedule bitrate request. task:%s' % (b_task))
+                self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+        except Exception, e:
+            self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error=True)
+            self.logger.error('Failed to index request.', e)
         
     def do_bitrate(self, task):
         self.logger.debug('Execute bitrate: %s' % (str(task)))
-        response = self._get_vex_response(task, tag='Bitrate')
+        response, used_time = self._get_vex_response(task, tag='Bitrate')
         if response is None:
             return
         
@@ -53,9 +59,9 @@ class VODPerfTest(VEXPerfTestBase):
     
     # 将来用decrator代替
     def _get_vex_response(self, task, tag='Index'):
-        response = None
+        response, used_time = None, 0
         try:
-            response = self.get_response(task, self.test_client_request_timeout)
+            response, used_time = self.get_response(task, self.test_client_request_timeout)
         except Exception, e:
             self.logger.error('Failed to do %s task. %s' % (tag, task,), e)
             
@@ -65,12 +71,12 @@ class VODPerfTest(VEXPerfTestBase):
                 time.sleep(self.test_client_request_retry_delay)
                 try:
                     self.logger.debug('Retry index, %s time. task:[%s]' % (retry_count, task))
-                    response = self.get_response(task, self.test_client_request_timeout)
+                    response, used_time = self.get_response(task, self.test_client_request_timeout)
                     return response
                 except Exception, e:
                     self.logger.error('Retry index failed, %s time. task:[%s]' % (retry_count, task))
                     mtries -= 1
-        return response
+        return response, used_time
 
     def task_generater(self):
         while True:

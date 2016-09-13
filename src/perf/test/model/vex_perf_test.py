@@ -14,8 +14,7 @@ from perf.test.model.configuration import Configurations
 from perf.test.model.task import VEXScheduleReqeustsTask
 from perf.test.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util
-from utility.counter import Counter
-
+from utility.counter import VEXMetricCounter
 
 class VEXPerfTestBase(Configurations, VEXRequest):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -109,13 +108,11 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.load_test_start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
     
     def init_vex_counter(self, **kwargs):
-        default_counters = '0,1000,3000,6000,12000'
-        generate_counter = lambda default_value: Counter([int(i) for i in string.split(default_value, ',')])
-        if not self._has_attr('index_response_counter'):
-            setattr(self, 'index_response_counter', generate_counter(default_counters))
-            
-        if not self._has_attr('bitrate_response_counter'):
-            setattr(self, 'bitrate_response_counter', generate_counter(default_counters))
+        default_counters = [0, 1000, 3000, 6000, 12000]
+        print self.index_response_counter
+        generate_counter = lambda att, default_value: VEXMetricCounter(getattr(self, att) if self._has_attr(att) else default_value, name=att)
+        setattr(self, 'index_counter', generate_counter('index_response_counter', default_counters))
+        setattr(self, 'bitrate_counter', generate_counter('bitrate_response_counter', default_counters))
     
     def init_lock(self):
         self.index_lock = threading.RLock()
@@ -222,7 +219,6 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         if not hasattr(self, 'test_case_type'):
             self.logger.fatal('Test case type must be set. for example: "test.case.type=VOD_T6"')
             exit(1)
-        
         return self.test_case_type
     
     def _generate_task(self):
@@ -252,6 +248,13 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.logger.debug('task schedule parameters: %s' % (gconfig))
         sched.configure(gconfig)
         return sched
+    
+    def _increment_counter(self, counter_obj, counter_lock, response_time=0, is_error=False):
+        with counter_lock:
+            if is_error:
+                counter_obj.increment_error()
+            else:
+                counter_obj.increment(response_time)
 
     def run(self):
         try:
@@ -273,6 +276,7 @@ class VEXPerfTestBase(Configurations, VEXRequest):
                 time.sleep(30)
             
             self.logger.debug('Flush statistics info into local file.')
+            self.logger.debug(self.index_counter)
             # export_summary_info(load_start_date)
             # export_traced_response_info()
             # if check_response: export_error_response_info()
