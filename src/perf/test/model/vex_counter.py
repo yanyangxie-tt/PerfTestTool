@@ -50,6 +50,12 @@ class VEXMetricCounter(MetricCounter):
         return [str(metric) for metric in self.delta_metric_list]
     
     def clear_delta_metric(self):
+        
+        self.delta_total_count = 0
+        self.delta_succeed_total_count = 0
+        self.delta_error_total_count = 0
+        self.delta_sum_number = 0
+        
         for metric in self.delta_metric_list:
             metric.count = 0
     

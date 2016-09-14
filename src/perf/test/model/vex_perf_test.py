@@ -210,9 +210,12 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag='Bitrate response summary')
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
         
+        self.index_counter.clear_delta_metric()
+        self.bitrate_counter.clear_delta_metric()
+        
         delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
         self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_dir, delta_report_file, time_util.get_local_now()))
-        file_util.write_file(self.test_result_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
+        file_util.write_file(self.test_result_report_delta_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
     
     def dump_delta_error_details(self):
         # self.test_result_report_error_dir = self.test_result_dir + self.test_result_report_error_dir
