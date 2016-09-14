@@ -78,7 +78,7 @@ class VEXMetricCounter(MetricCounter):
         summary += '%2s%-19s:%s\n' % ('', 'Succeed requests   ', succeed_total_count)
         summary += '%2s%-19s:%s\n' % ('', 'Failure requests   ', error_total_count)
         summary += '%2s%-19s:%.2f%%\n' % ('', 'Succeed rate', 100 * (float(succeed_total_count) / total_count))
-        summary += '%2s%-19s:%-4s milliseconds\n' % ('', 'Average response', sum_number / succeed_total_count if succeed_total_count != 0 else 0)
+        summary += '%2s%-19s:%s\n' % ('', 'Average response', sum_number / succeed_total_count if succeed_total_count != 0 else 0)
         summary += '%2s%-19s:%s\n' % ('', 'Metric  details', '')
         
         for metric in metric_list:
