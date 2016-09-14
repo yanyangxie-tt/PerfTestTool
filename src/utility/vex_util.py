@@ -3,6 +3,8 @@ import os
 import re
 import time
 
+from utility import time_util
+
 
 def get_process_result_tmp_dir(result_dir, test_case_name=None, process_number=None, test_prefix='test-result-'):
     '''Get result dir for special test case and special process in test machine'''
@@ -37,3 +39,7 @@ def get_test_client_ip_latest_segment_range(range_string='0~255'):
         return [i for i in range(int(rs[0][0]), 1 + int(rs[0][1]))]
     else:
         return [i for i in range(0, 256)]
+
+def get_timed_file_name(file_name):
+    return '%s-%s' % (file_name, time_util.datetime_2_string(time_util.get_local_now(), "%Y-%m-%d-%H-%M-%S"))
+        

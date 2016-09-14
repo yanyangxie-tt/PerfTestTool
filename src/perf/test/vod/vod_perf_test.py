@@ -51,7 +51,7 @@ class VODPerfTest(VEXPerfTestBase):
         
     def do_bitrate(self, task):
         try:
-            self.logger.info('Execute bitrate: %s' % (str(task)))
+            self.logger.debug('Execute bitrate: %s' % (str(task)))
             response, used_time = self._get_vex_response(task, tag='Bitrate')
             response_text = response.text
             

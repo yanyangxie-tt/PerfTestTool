@@ -4,16 +4,19 @@
 import Queue
 import logging
 import random
+import sys
 import threading
 import time
+import traceback
 
 from apscheduler.scheduler import Scheduler
 
 from perf.test.model.configuration import Configurations
 from perf.test.model.task import VEXScheduleReqeustsTask
+from perf.test.model.vex_counter import VEXMetricCounter
 from perf.test.model.vex_requests import VEXRequest
-from utility import vex_util, time_util, logger_util, ip_util
-from utility.counter import VEXMetricCounter
+from utility import vex_util, time_util, logger_util, ip_util, file_util
+
 
 class VEXPerfTestBase(Configurations, VEXRequest):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -35,10 +38,10 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self._set_attr('test_case_survival', 600)
         
         # Default value of log.export.thirdparty is False, not to export thirdparty logs.
-        if self._has_attr('log_export_thirdparty') and getattr(self, 'log_export_thirdparty'):
-            self._set_attr('log_name', 'vex')
-        else:
+        if self._has_attr('log_export_thirdparty') and getattr(self, 'log_export_thirdparty') is True:
             self._set_attr('log_name', None)
+        else:
+            self._set_attr('log_name', 'vex')
             
         self._set_attr('test_client_zone_number', 500)
         self._set_attr('test_client_location_number', 500)
@@ -82,20 +85,20 @@ class VEXPerfTestBase(Configurations, VEXRequest):
     
     def init_environment(self):
         self.init_result_dir()
-        self.init_log(self.result_dir + self.test_result_log_file, self.log_level, self.log_name)
+        self.init_log(log_file=self.test_result_dir + self.test_result_log_file, log_level=self.log_level, log_name=self.log_name)
         self.init_vex_counter()
         self.init_lock()
         self.init_queue()
-        self.set_test_machine_conccurent_request_number()
-        self.set_processs_concurrent_request_number()
-        self.set_entertainment_contents()
+        self.setup_test_machine_conccurent_request_number()
+        self.setup_processs_concurrent_request_number()
+        self.setup_test_contents()
     
     def init_result_dir(self):
         # To multiple process, each process has its private log， need use a flag to generate its private result dir. Now we use current_process_index
-        self.result_dir = vex_util.get_process_result_tmp_dir(self.test_result_temp_dir, self.test_case_name, self.current_process_index)
-        self.test_result_report_delta_dir = self.result_dir + self.test_result_report_delta_dir
-        self.test_result_report_error_dir = self.result_dir + self.test_result_report_error_dir
-        self.test_result_report_traced_dir = self.result_dir + self.test_result_report_traced_dir
+        self.test_result_dir = vex_util.get_process_result_tmp_dir(self.test_result_temp_dir, self.test_case_name, self.current_process_index)
+        self.test_result_report_delta_dir = self.test_result_dir + self.test_result_report_delta_dir
+        self.test_result_report_error_dir = self.test_result_dir + self.test_result_report_error_dir
+        self.test_result_report_traced_dir = self.test_result_dir + self.test_result_report_traced_dir
 
     def init_log(self, log_file, log_level, log_name=None):
         logger_util.setup_logger(log_file, name=log_name, log_level=log_level)
@@ -112,7 +115,6 @@ class VEXPerfTestBase(Configurations, VEXRequest):
     
     def init_vex_counter(self, **kwargs):
         default_counters = [0, 1000, 3000, 6000, 12000]
-        print self.index_response_counter
         generate_counter = lambda att, default_value: VEXMetricCounter(getattr(self, att) if self._has_attr(att) else default_value, name=att)
         setattr(self, 'index_counter', generate_counter('index_response_counter', default_counters))
         setattr(self, 'bitrate_counter', generate_counter('bitrate_response_counter', default_counters))
@@ -168,7 +170,7 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.psn_sched = self._init_apsched(gconfig)
         self.psn_sched.start()
     
-    def set_test_machine_conccurent_request_number(self):
+    def setup_test_machine_conccurent_request_number(self):
         if not hasattr(self, 'test_machine_hosts'):
             self.logger.fatal('test.machine.hosts must be configured.')
             exit(1)
@@ -176,14 +178,14 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         test_machine_inistace_size = len(self.test_machine_hosts)
         self.test_machine_current_request_number = self.test_client_concurrent_number / test_machine_inistace_size if self.test_client_concurrent_number > test_machine_inistace_size else 1
     
-    def set_processs_concurrent_request_number(self):
+    def setup_processs_concurrent_request_number(self):
         current_number, remainder = divmod(self.test_machine_current_request_number, self.test_execute_process_number)
         if self.current_process_index < remainder + 1:
             current_number += 1
        
         self.current_processs_concurrent_request_number = current_number
     
-    def set_entertainment_contents(self):
+    def setup_test_contents(self):
         if not hasattr(self, 'test_content_names'):
             self.logger.fatal('Test content names must be set. for example: "test.content.names=vod_test_[1~100]"')
             exit(1)
@@ -193,6 +195,43 @@ class VEXPerfTestBase(Configurations, VEXRequest):
             self.logger.info('Test content names are from %s to %s' % (self.test_content_name_list[0], self.test_content_name_list[-1]))
         else:
             self.logger.info('Test content name is %s' % (self.test_content_name_list[0]))
+    
+    def dump_summary_statistical_data(self):
+        cost_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
+        index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag='Index response summary')
+        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag='Bitrate response summary')
+        statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
+        self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_log_file, time_util.get_local_now()))
+        self.logger.info(statistical_data)
+        file_util.write_file(self.test_result_dir, self.test_result_log_file, statistical_data, mode='a', is_delete=True)
+    
+    def dump_delta_statistical_data(self):
+        index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag='Index response summary')
+        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag='Bitrate response summary')
+        statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
+        
+        delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
+        self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_dir, delta_report_file, time_util.get_local_now()))
+        file_util.write_file(self.test_result_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
+    
+    def dump_delta_error_details(self):
+        # self.test_result_report_error_dir = self.test_result_dir + self.test_result_report_error_dir
+        pass
+    
+    def dump_traced_bitrate_contents(self):
+        # self.test_result_report_traced_dir = self.test_result_dir + self.test_result_report_traced_dir
+        pass
+     
+    def startup_reporter(self):
+        if hasattr(self, 'test_case_counter_dump_interval'):
+            self.logger.debug('Dump statistical data while running each %s seconds' % (self.test_case_counter_dump_interval))
+            r_start_date = time_util.get_datetime_after(self.load_test_start_date, delta_seconds=self.test_case_counter_dump_interval)
+            self.report_sched.add_interval_job(self.dump_summary_statistical_data, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
+            self.report_sched.add_interval_job(self.dump_delta_statistical_data, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
+            self.report_sched.add_interval_job(self.dump_delta_error_details, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
+            self.report_sched.add_interval_job(self.dump_traced_bitrate_contents, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
+        else:
+            self.logger.warn('No parameter test.case.counter.dump.interval, not dump statistical data while running')
             
     def prepare_task(self):
         self.logger.debug('Start to prepare task')
@@ -262,28 +301,29 @@ class VEXPerfTestBase(Configurations, VEXRequest):
     def run(self):
         try:
             self.logger.info('Start to do performance test at %s' % (time_util.get_local_now()))
+            self.startup_reporter()
             self.prepare_task()
             self.dispatch_task()
-        
-            time.sleep(2)
-            while(True):
-                current_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
-                if time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date) >= self.test_case_survival:
-                    self.logger.info('#' * 100)
-                    self.logger.info('Reach load test time limitation %s. Shutdown sched' % (self.test_case_survival))
-                    self.task_consumer_sched.shutdown()
-                    self.dispatch_task_sched.shutdown()
-                    self.report_sched.shutdown()
-                    self.psn_sched.shutdown()
-                    break
-                time.sleep(30)
             
-            self.logger.debug('Flush statistics info into local file.')
-            self.logger.info(self.index_counter)
-            self.logger.info(self.bitrate_counter)
-            # export_summary_info(load_start_date)
+            while(True):
+                current_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=0)
+                if time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date) >= self.test_case_survival:
+                    break
+                time.sleep(1)
+            
+            self.logger.info('#' * 100)
+            self.logger.info('Reach load test time limitation %s. Shutdown sched and flush statistics info into local file.' % (self.test_case_survival))
+            self.dump_summary_statistical_data()
+            self.dump_traced_bitrate_contents()
+            self.dump_delta_error_details()
             # export_traced_response_info()
             # if check_response: export_error_response_info()
+            
             self.logger.info('Load test finished at %s' % (current_date))
+            self.dispatch_task_sched.shutdown(False)
+            self.task_consumer_sched.shutdown(False)
+            self.report_sched.shutdown(False)
         except Exception, e:
+            exc_type, exc_value, exc_tb = sys.exc_info() 
+            traceback.print_exception(exc_type, exc_value, exc_tb)
             self.logger.fatal('Fatal exception occurs, stop the load test.', e)
