@@ -155,20 +155,22 @@ class VEXPerfTestBase(Configurations, VEXRequest):
     
     def init_psn_sched(self):
         # if self.psn_send or self.psn_fake_send or self.psn_endall_send:
-        self._set_attr('psn_apschdule_threadpool_core_threads', 100, False)
-        self._set_attr('psn_apschdule_threadpool_max_threads', 100, False)
-        self._set_attr('psn_apschdule_queue_max', 100000, False)
-        self._set_attr('psn_apschdule_tqueue_misfire_time', 300, False)
-        
-        gconfig = {'apscheduler.threadpool.core_threads':self.psn_apschdule_threadpool_core_threads,
-                   'apscheduler.threadpool.max_threads':self.psn_apschdule_threadpool_max_threads,
-                   'apscheduler.threadpool.keepalive':120,
-                   'apscheduler.misfire_grace_time':self.psn_apschdule_queue_max,
-                   'apscheduler.coalesce':True,
-                   'apscheduler.max_instances':self.psn_apschdule_tqueue_misfire_time}
-        
-        self.psn_sched = self._init_apsched(gconfig)
-        self.psn_sched.start()
+        if self._has_attr('psn_send') and self._has_attr('psn_fake_send') and self._has_attr('psn_endall_send'):
+            self.send_psn_message = True
+            self._set_attr('psn_apschdule_threadpool_core_threads', 100, False)
+            self._set_attr('psn_apschdule_threadpool_max_threads', 100, False)
+            self._set_attr('psn_apschdule_queue_max', 100000, False)
+            self._set_attr('psn_apschdule_tqueue_misfire_time', 300, False)
+            
+            gconfig = {'apscheduler.threadpool.core_threads':self.psn_apschdule_threadpool_core_threads,
+                       'apscheduler.threadpool.max_threads':self.psn_apschdule_threadpool_max_threads,
+                       'apscheduler.threadpool.keepalive':120,
+                       'apscheduler.misfire_grace_time':self.psn_apschdule_queue_max,
+                       'apscheduler.coalesce':True,
+                       'apscheduler.max_instances':self.psn_apschdule_tqueue_misfire_time}
+            
+            self.psn_sched = self._init_apsched(gconfig)
+            self.psn_sched.start()
     
     def setup_test_machine_conccurent_request_number(self):
         if not hasattr(self, 'test_machine_hosts'):
@@ -328,6 +330,8 @@ class VEXPerfTestBase(Configurations, VEXRequest):
             self.dispatch_task_sched.shutdown(False)
             self.task_consumer_sched.shutdown(False)
             self.report_sched.shutdown(False)
+            if self.send_psn_message: 
+                self.psn_sched.shutdown(False)
         except Exception, e:
             exc_type, exc_value, exc_tb = sys.exc_info() 
             traceback.print_exception(exc_type, exc_value, exc_tb)
