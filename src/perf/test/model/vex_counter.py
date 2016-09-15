@@ -50,7 +50,6 @@ class VEXMetricCounter(MetricCounter):
         return [str(metric) for metric in self.delta_metric_list]
     
     def clear_delta_metric(self):
-        
         self.delta_total_count = 0
         self.delta_succeed_total_count = 0
         self.delta_error_total_count = 0
@@ -82,7 +81,7 @@ class VEXMetricCounter(MetricCounter):
         summary += '%2s%-19s:%s\n' % ('', 'Metric  details', '')
         
         for metric in metric_list:
-            summary += '%4s%-17s:%-4s milliseconds\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[0]), metric.count)
+            summary += '%4s%-10s milliseconds:%s\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[1]), metric.count)
         return summary
     
     def parser(self, summary_info):

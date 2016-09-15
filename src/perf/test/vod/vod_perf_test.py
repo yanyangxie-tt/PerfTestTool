@@ -4,8 +4,11 @@
 import os
 import time
 
+import requests
+
 from perf.test.model.vex_perf_test import VEXPerfTestBase
 from utility import time_util, manifest_util
+
 
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_number=0, **kwargs):
@@ -22,8 +25,16 @@ class VODPerfTest(VEXPerfTestBase):
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
-            response, used_time = self._get_vex_response(task, tag='Index')
-            response_text = response.text
+            
+            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'index-fake-response.txt'
+            if os.path.exists(fake_response_file):
+                response = requests.get('http://www.baidu.com')
+                f = open(fake_response_file)
+                response_text = f.read()
+                used_time = 201
+            else:
+                response, used_time = self._get_vex_response(task, tag='Index')
+                response_text = response.text
             
             if response is None:
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
@@ -46,15 +57,24 @@ class VODPerfTest(VEXPerfTestBase):
                 self.logger.debug('Schedule bitrate request. task:%s' % (b_task))
                 self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
         except Exception, e:
+            print e
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error=True)
             self.logger.error('Failed to index request.', e)
         
     def do_bitrate(self, task):
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
-            response, used_time = self._get_vex_response(task, tag='Bitrate')
-            response_text = response.text
             
+            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'index-fake-response.txt'
+            if os.path.exists(fake_response_file):
+                response = requests.get('http://www.baidu.com')
+                f = open(fake_response_file)
+                response_text = f.read()
+                used_time = 200
+            else:
+                response, used_time = self._get_vex_response(task, tag='Bitrate')
+                response_text = response.text
+                
             if response is None:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
                 return
@@ -74,7 +94,7 @@ class VODPerfTest(VEXPerfTestBase):
         try:
             response, used_time = self.get_response(task, self.test_client_request_timeout)
         except Exception, e:
-            self.logger.error('Failed to do %s task. %s' % (tag, task,), e)
+            self.logger.error('Failed to do %s task. %s. %s' % (tag, task, e), exc_info=0)
             
             mtries = self.test_client_request_retry_count
             retry_count = 1

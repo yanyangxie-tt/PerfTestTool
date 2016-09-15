@@ -175,12 +175,14 @@ class VEXPerfTestBase(Configurations, VEXRequest):
             self.logger.fatal('test.machine.hosts must be configured.')
             exit(1)
         
+        if type(self.test_machine_hosts) is not list:
+            self.test_machine_hosts = self.test_machine_hosts.split(',')
         test_machine_inistace_size = len(self.test_machine_hosts)
         self.test_machine_current_request_number = self.test_client_concurrent_number / test_machine_inistace_size if self.test_client_concurrent_number > test_machine_inistace_size else 1
     
     def setup_processs_concurrent_request_number(self):
         current_number, remainder = divmod(self.test_machine_current_request_number, self.test_execute_process_number)
-        if self.current_process_index < remainder + 1:
+        if self.current_process_index < remainder:
             current_number += 1
        
         self.current_processs_concurrent_request_number = current_number
