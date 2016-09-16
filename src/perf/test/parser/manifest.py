@@ -3,6 +3,9 @@
 
 import re
 
+from utility import psn_util
+
+
 class ManifestPaser(object):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_',):
         self.manifest = manifest
@@ -20,12 +23,12 @@ class ManifestPaser(object):
         self.sequence_number = 0
         self.has_asset_id = False
         self.entertainment_ts_number = 0
-        # self.entertainment_ts_dict = {}  # 这个是做什么用的，没想明白。难道是为了linear使用的？
+        self.psn_tracking_position_id_dict = {}
     
     def parse(self):
         self.asset_id = self.extract_asset_id(self.request_url)
-        # if self.asset_id is None:
-        #    return
+        if self.asset_id is None:
+            return
         self.asset_id = 'e'
         
         manifest_list = self.manifest.split('\n')
@@ -45,11 +48,9 @@ class ManifestPaser(object):
             
             if self.psn_tag is not None and line.find(self.psn_tag) > -1:
                 pass
-                '''
                 trackingId = psn_util.get_psn_tracking_id(line)
                 if trackingId != '':
-                    psn_tracking_position_id_dict[index_number] = trackingId    
-                '''
+                    self.psn_tracking_position_id_dict[entertainment_ts_index] = trackingId    
             elif line.find('.ts') > 0:
                 if line.find(self.ad_tag) > -1:
                     self.ad_ts_number += 1
@@ -141,19 +142,19 @@ class VODManifestChecker(ManifestPaser):
         return self.error
 
 if __name__ == '__main__':    
-    request_url = 'www.baidu.com/vod_1'
+    request_url = 'www.baidu.com/vod_test_1/index.m3u8'
     manifest = '''
     ad_1.ts\n
-    e_1.ts\n
-    e_2.ts\n
+    vod_1.ts\n
+    vod_2.ts\n
     ad_2.ts\n
-    e_3.ts\n
+    vod_3.ts\n
     ad_3.ts\n
-    e_4.ts\n
+    vod_4.ts\n
     ad_3.ts\n
     '''
     
-    v = VODManifestChecker(manifest, request_url, psn_tag=None, ad_tag='ad', asset_id_tag='e')
+    v = VODManifestChecker(manifest, request_url, psn_tag=None, ad_tag='ad', asset_id_tag='vod_')
     print v.ad_pre_number
     print v.ad_post_number
     print v.ad_mid_number

@@ -2,13 +2,14 @@
 # author: yanyang.xie@gmail.com
 
 import os
+import sys
 import time
 
 import requests
 
 from perf.test.model.vex_perf_test import VEXPerfTestBase
 from perf.test.parser.manifest import VODManifestChecker
-from utility import time_util, manifest_util
+from utility import time_util, manifest_util, psn_util
 
 
 class VODPerfTest(VEXPerfTestBase):
@@ -28,7 +29,7 @@ class VODPerfTest(VEXPerfTestBase):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
             
-            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'index-fake-response.txt'
+            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'fake/index-fake-response.txt'
             if os.path.exists(fake_response_file):
                 response = requests.get('http://www.baidu.com')
                 f = open(fake_response_file)
@@ -68,7 +69,7 @@ class VODPerfTest(VEXPerfTestBase):
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
             
-            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'index-fake-response.txt'
+            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'fake/bitrate-fake-response.txt'
             if os.path.exists(fake_response_file):
                 response = requests.get('http://www.baidu.com')
                 f = open(fake_response_file)
@@ -96,9 +97,9 @@ class VODPerfTest(VEXPerfTestBase):
             if self._has_attr('client_response_check_when_running'):
                 self.check_response(task, checker)
             
-            # @todo
-            # send_psn
-                
+            if self.send_psn_message:
+                psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
+                self.send_psn_message(task, checker.psn_tracking_position_id_dict, psn_gap_list)
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error=True)
             self.logger.error('Failed to bitrate request.', e, exc_info=1)
@@ -110,6 +111,33 @@ class VODPerfTest(VEXPerfTestBase):
         if error_message is not None:
             self.logger.error(error_message)
             self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
+    
+    def send_psn_message(self, task, psn_tracking_position_id_dict=None, psn_gap_list):
+        if self._has_attr('psn_fake_send'):
+            # send_vod_psn_message(item, fake_psn_tracking_position_id_dict, psn_gap_list)
+            pass
+        
+        if self._has_attr('psn_send'):
+            self.send_psn(task, psn_tracking_position_id_dict, psn_gap_list)
+        
+        if self._has_attr('psn_endall_send'):
+            # send_vod_end_all_psn_message(item)
+            pass
+    
+    def send_psn(self, task, psn_tracking_position_id_dict, psn_gap_list):
+        if psn_tracking_position_id_dict is None or len(psn_tracking_position_id_dict) == 0:
+            return
+        
+        if psn_gap_list is None or len(psn_gap_list) == 0:
+            return
+        
+        try:
+            psn_event_list = psn_util.generate_psn_scheduled_event_list(psn_tracking_position_id_dict, psn_gap_list, segment_size=self.client_response_content_segment_time)
+            self.logger.debug('PSN event list is:%s' % (str(psn_event_list)))
+            psn_util.schedule_psn_event(self.psn_sched, self.psn_receiver_host, task.get_client_ip(), psn_event_list)
+        except:
+            exce_info = 'Line %s: %s' % ((sys.exc_info()[2]).tb_lineno, sys.exc_info()[1])
+            self.logger.error("Failed to send PSN message. Exception: %s." % (exce_info))
             
     def _get_vex_response(self, task, tag='Index'):
         response, used_time = None, 0
