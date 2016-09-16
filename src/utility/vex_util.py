@@ -43,3 +43,16 @@ def get_test_client_ip_latest_segment_range(range_string='0~255'):
 def get_timed_file_name(file_name):
     return '%s-%s' % (file_name, time_util.datetime_2_string(time_util.get_local_now(), "%Y-%m-%d-%H-%M-%S"))
         
+def get_datas_in_queue(q):
+    if q.empty():
+        return None
+    
+    datas = []
+    index = q.qsize()
+    while True:
+        if q.empty() or index == 0:
+            break
+        info = str(q.get())
+        datas.append(info + '\n')
+        index -= 1
+    return datas

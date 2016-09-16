@@ -218,12 +218,17 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         self.bitrate_counter.clear_delta_metric()
         
         delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
-        self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_dir, delta_report_file, time_util.get_local_now()))
+        self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_report_delta_dir, delta_report_file, time_util.get_local_now()))
         file_util.write_file(self.test_result_report_delta_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
     
     def dump_delta_error_details(self):
-        # self.test_result_report_error_dir = self.test_result_dir + self.test_result_report_error_dir
-        pass
+        if self.error_record_queue.empty():
+            return
+        
+        datas = vex_util.get_datas_in_queue(self.error_record_queue)
+        delta_error_file = vex_util.get_timed_file_name(self.test_result_report_error_file)
+        self.logger.info('Export delta error report file to %s/%s at %s' % (self.test_result_report_error_dir, delta_error_file, time_util.get_local_now()))
+        file_util.write_file(self.test_result_report_error_dir, delta_error_file, datas, mode='a', is_delete=True)
     
     def dump_traced_bitrate_contents(self):
         # self.test_result_report_traced_dir = self.test_result_dir + self.test_result_report_traced_dir

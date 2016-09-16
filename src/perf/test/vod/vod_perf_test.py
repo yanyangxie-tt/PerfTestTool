@@ -6,8 +6,8 @@ import time
 
 import requests
 
-from perf.test.model import manifest
 from perf.test.model.vex_perf_test import VEXPerfTestBase
+from perf.test.parser.manifest import VODManifestChecker
 from utility import time_util, manifest_util
 
 
@@ -92,111 +92,24 @@ class VODPerfTest(VEXPerfTestBase):
                 return
             
             self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
-            # manifest parser
-            m = manifest.VODManifestPaser(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_')
+            checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_')
             if self._has_attr('client_response_check_when_running'):
-                # 如何计算ad的位置？pre和post的
-                # client.response.ad.pre.roll.ts.number=10
-                # client.response.ad.post.roll.ts.number=10
-                # client.response.ad.mid.roll.ts.number=10
-                # client.response.ad.mid.roll.position=75,150,225
-                
-                expected_ad_position_list = []
-                error_message = m.check(self.client_response_media_sequence, self.client_response_content_segment_number,
-                                        self.client_response_endlist_tag, self.client_response_drm_tag, expected_ad_position_list,
-                                        self.client_response_ad_pre_roll_ts_number, self.client_response_ad_mid_roll_ts_number, self.client_response_ad_post_roll_ts_number,
-                                        )
-                if error_message is not None:
-                    self.logger.error(error_message)
-                    self.error_record_queue.put(error_message, False, 2)
+                self.check_response(task, checker)
             
             # @todo
             # send_psn
                 
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error=True)
-            self.logger.error('Failed to bitrate request.', e)
+            self.logger.error('Failed to bitrate request.', e, exc_info=1)
     
-    def check_response(self, bitrate_manifest, task):
-        m = manifest.ManifestPaser(bitrate_manifest, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_')
-        m.parse()
-        if m.has_asset_id is False:
-            self.logger.error('Not found same asset id from manifest. url:%s, manifest:%s' % (task.get_bitrate_url(), bitrate_manifest))
-            # 记录error
-            return
-    
-    
-    '''
-    def check_response_data(item, t_manifest, primary_ts_number, ad_ts_number, first_ad_position, media_sequence_number, asset_id, has_asset_id, t_time):
-        try:
-            error_message_list = []
-            
-            if not has_asset_id:
-                error_message_list.append('\n\tAsset ID in bit rate response unmatched. Index asset id: %s, bit rate manifest: %s' % (str(asset_id), str(t_manifest)))
-            
-            if media_sequence is not None:
-                # check media sequence
-                if media_sequence_number is None:
-                    error_message_list.append('\n\tMedia sequence is None, not the same as checked media sequence %s' % (str(media_sequence)))
-                elif int(media_sequence) != int(media_sequence_number):
-                    error_message_list.append('\n\tMedia sequence is %s, not the same as checked media sequence %s' % (str(media_sequence_number), str(media_sequence)))
-            
-            hasSAP = item[0].find("HasSAP=true") > 0
-            logger.info("xie: hasSAP: %s" % hasSAP)
-            logger.info("xie: item[0]: %s" % (item[0]))
-            logger.info("xie: is_sap_not_insert_ad and hasSAP: %s" % (is_sap_not_insert_ad and hasSAP))
-            
-            if is_sap_not_insert_ad and hasSAP:
-                # while is_sap_not_insert_ad==True and content is SAP, not insert any ad in it
-                if int(vod_content_length) != primary_ts_number:
-                    error_message_list.append('\n\tTotal primary ts size is %s, not the same as fixed recording length %s' % (primary_ts_number, vod_content_length))
-                
-                if t_manifest.find(end_list_tag) < 0:
-                    error_message_list.append('\n\tNot found end list tag %s' % (end_list_tag))
-                
-                if drm_tag is not None and t_manifest.find(drm_tag) < 0:
-                    error_message_list.append('\n\tNot found drm info %s' % (drm_tag))
-                
-                if ad_ts_number != 0 :
-                    error_message_list.append('\n\tAD TS number in SAP should be 0, current is %s' % (ad_ts_number))
-                    
-                
-            elif mid_roll_ad_positions is not None and mid_roll_ad_ts_number is not None and vod_content_length is not None:
-                if int(vod_content_length) != primary_ts_number:
-                    error_message_list.append('\n\tTotal primary ts size is %s, not the same as fixed recording length %s' % (primary_ts_number, vod_content_length))
-                
-                if t_manifest.find(end_list_tag) < 0:
-                    error_message_list.append('\n\tNot found end list tag %s' % (end_list_tag))
-                    
-                if drm_tag is not None and t_manifest.find(drm_tag) < 0:
-                    error_message_list.append('\n\tNot found drm info %s' % (drm_tag))
-                
-                # need calculate the first ad position to confirm the total ad number
-                expected_mid_roll_ad_number = len(mid_roll_ad_positions.split(',')) * mid_roll_ad_ts_number
-                expected_ad_number = pre_roll_ad_ts_number + expected_mid_roll_ad_number + post_roll_ad_ts_number
-                
-                # expected_ad_number = ad_ts_batch_size * (1 + vod_content_length/primary_ts_batch_size if vod_content_length%primary_ts_batch_size!=0 else vod_content_length/primary_ts_batch_size)
-                if expected_ad_number != ad_ts_number:
-                    logger.error("\n\tTotal AD size is %s, not the same as expected %s ADs." % (ad_ts_number, expected_ad_number))
-                    error_message_list.append('\n\tTotal AD size is %s, not the same as expected %s ADs.' % (ad_ts_number, expected_ad_number))
-                elif item[4].find('iframe') > 0 and t_manifest.find('ad_iframe') < 0:
-                    logger.error("\n\tAD content is not a iframe AD")
-                    error_message_list.append("\n\tAD content is not a iframe AD")
-                elif item[4].find('audio') > 0 and (t_manifest.find('audio') < 0):
-                    logger.error("\n\tAD content is not a audio AD")
-                    error_message_list.append("\n\tAD content is not a audio AD")
-                    
-            if error_message_list is not None and len(error_message_list) > 0:
-                error_message_list = ['%s. Validation failed. IP:%s, URL:%s' % (time_util.datetime_2_string(t_time), item[1], item[0])] + error_message_list + ['\n', ]
-                error_messages = string.join(error_message_list)
-                logger.error(error_messages)
-                logger.error(t_manifest)
-                error_analysis_report_queue.put(error_messages, timeout=10)
-        except:
-            exce_info = 'Line %s: %s' % ((sys.exc_info()[2]).tb_lineno, sys.exc_info()[1])
-            logger.error("Failed to check response. Exception: %s." % (exce_info))
-            logger.error("Manifest is: %s" % (t_manifest))
-    '''
+    def check_response(self, task, manifest_checker):
+        error_message = manifest_checker.check(self.client_response_media_sequence, self.client_response_content_segment_number,
+                self.client_response_endlist_tag, self.client_response_drm_tag, self.client_response_ad_mid_roll_position, self.client_response_ad_pre_roll_ts_number,
+                self.client_response_ad_mid_roll_ts_number, self.client_response_ad_post_roll_ts_number,)
+        if error_message is not None:
+            self.logger.error(error_message)
+            self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
             
     def _get_vex_response(self, task, tag='Index'):
         response, used_time = None, 0

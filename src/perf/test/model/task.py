@@ -63,12 +63,15 @@ class VEXScheduleReqeustsTask(ScheduledRequestsTask):
     
     def get_request_headers(self):
         return self.headers
+    
+    def get_client_ip(self):
+        return self.client_ip
 
     def clone(self):
         return VEXScheduleReqeustsTask(self.url, self.client_ip, self.zone, self.location, self.bitrate_url, self.delta_seconds, self.delta_milliseconds)
 
     def __repr__(self):
-        return 'url:%s, bitrate_url:%s, start_date:%s, headers:%s, timeout:%s' % (self.url, self.bitrate_url, self.start_date, self.headers, self.timeout)
+        return 'client_ip:%s, url:%s, bitrate_url:%s, start_date:%s' % (self.client_ip, self.url, self.bitrate_url, self.start_date)
 
 if __name__ == '__main__':
     task = VEXScheduleReqeustsTask('url1', '1.1.1.1', 1, 1)
