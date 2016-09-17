@@ -27,7 +27,7 @@ class Configurations(object):
             raise Exception('Configuration file %s do not exist' % (self.config_file))
             sys.exit(1)
             
-        self.parameters = common_util.load_properties(self.config_file)
+        self.parameters = common_util.load_properties(self.config_file,)
         self.parameters.update(kwargs)
         
         if kwargs.has_key('golden_config_file'):

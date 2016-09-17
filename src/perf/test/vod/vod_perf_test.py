@@ -2,14 +2,13 @@
 # author: yanyang.xie@gmail.com
 
 import os
-import sys
 import time
 
 import requests
 
 from perf.test.model.vex_perf_test import VEXPerfTestBase
 from perf.test.parser.manifest import VODManifestChecker
-from utility import time_util, manifest_util, common_util
+from utility import time_util, manifest_util
 
 
 class VODPerfTest(VEXPerfTestBase):

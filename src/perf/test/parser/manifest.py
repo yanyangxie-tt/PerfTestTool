@@ -3,9 +3,6 @@
 
 import re
 
-from utility import psn_util
-
-
 class ManifestPaser(object):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_',):
         self.manifest = manifest
@@ -47,8 +44,7 @@ class ManifestPaser(object):
                 self.has_asset_id = True
             
             if self.psn_tag is not None and line.find(self.psn_tag) > -1:
-                pass
-                trackingId = psn_util.get_psn_tracking_id(line)
+                trackingId = self.extract_psn_tracking_id(line)
                 if trackingId != '':
                     self.psn_tracking_position_id_dict[entertainment_ts_index] = trackingId    
             elif line.find('.ts') > 0:
@@ -72,7 +68,14 @@ class ManifestPaser(object):
                         self.ad_mid_position_list.append(tmp_index)
                         self.ad_mid_number += self.ad_post_number
                         self.ad_post_number = 0
-                
+    
+    def extract_psn_tracking_id(self, content):
+        '''Get PSN tracking id'''
+        p = r'\w*\W*ID=(.*),DURATION[\.\n]*'
+        psn_info = re.findall(p, content)
+        
+        if psn_info is not None and len(psn_info) > 0:
+            return psn_info[0]            
     
     def extract_asset_id(self, url):
         flag = '/(%s.*)/' % (self.asset_id_tag)

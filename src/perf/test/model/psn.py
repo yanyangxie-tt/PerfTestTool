@@ -16,14 +16,6 @@ class PSNEvents(object):
     def init_logger(self, logger):
         self.logger = logger
     
-    def extract_psn_tracking_id(self, content):
-        '''Get PSN tracking id'''
-        p = r'\w*\W*ID=(.*),DURATION[\.\n]*'
-        psn_info = re.findall(p, content)
-        
-        if psn_info is not None and len(psn_info) > 0:
-            return psn_info[0]
-    
     def schedule_psn_event(self, sched, psn_event_list, client_ip, psn_receiver_host, psn_receiver_port=80, timeout=2, tag=''):
         '''
         Schedule the first PSN event in psn_event_list, other events will be passed on the event.

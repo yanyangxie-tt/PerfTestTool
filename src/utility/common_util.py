@@ -6,7 +6,6 @@ import re
 import string
 import sys
 
-
 def get_config_value_by_key(config_dict, key, default_value=None):
     '''
     Get configured value by key from configuration value
@@ -21,11 +20,14 @@ def get_config_value_by_key(config_dict, key, default_value=None):
         value = default_value
     return value
 
-def load_properties(config_file, ignore_line_by_start_tag='#'):
+def load_properties(config_file, ignore_line_by_start_tag='#', comment_tag_in_value='##'):
     '''
     Load configurations from configuration file
     
     @param config_file: configuration file in absolute path
+    @param ignore_line_by_start_tag: if line started with #, ignore the line
+    @param comment_tag_in_value: if find ## in value, ignore string after ##
+    
     @return: configuration dict
     '''
     infos = {}
@@ -38,12 +40,13 @@ def load_properties(config_file, ignore_line_by_start_tag='#'):
                 continue
             line = string.replace(line, '\n', '')
             tmp = line.split("=", 1)
-            values = tmp[1].split("#", 1)
+            
+            values = tmp[1].split(comment_tag_in_value, 1)
             infos[string.strip(tmp[0])] = string.strip(values[0])
     return infos
 
-# merge two property files, value in second file will repalce the value in the first
 def merge_properties(original_properties_file, change_properties_file):
+    '''merge two property files, value in second file will replace the value in the first'''
     if not os.path.exists(original_properties_file):
         print 'The original file %s is not exist, do nothing' % (original_properties_file)
         return
