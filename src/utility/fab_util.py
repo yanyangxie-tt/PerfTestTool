@@ -9,7 +9,7 @@ from fabric.state import env
 
 
 # host and role lists will be merge to one list of deduped hosts while execute task
-def setRoles(role_name, host_list, user=None, port=None, roledefs_dict=None):
+def set_roles(role_name, host_list, user=None, port=None, roledefs_dict=None):
     '''host_list=['root@172.31.13.47:22', 'root@172.31.13.48', ]'''
     
     if host_list is None or type(host_list) != list:
@@ -30,7 +30,7 @@ def set_hosts(hosts):
     # env.hosts = ['user@host1:port', 'host2']
     env.hosts += hosts if type(hosts) is list else [hosts, ]
 
-def setKeyFile(key_filename):
+def set_key_file(key_filename):
     if key_filename is None or key_filename == '':
         return
     env.key_filename = key_filename

@@ -2,22 +2,23 @@
 # author: yanyang.xie@gmail.com
 
 import os
+import sys
 import time
-
 import requests
+
+sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../.."))
 
 from perf.test.model.vex_perf_test import VEXPerfTestBase
 from perf.test.parser.manifest import VODManifestChecker
 from utility import time_util, manifest_util
 
-
 class VODPerfTest(VEXPerfTestBase):
-    def __init__(self, config_file, current_process_number=0, **kwargs):
+    def __init__(self, config_file, current_process_index=0, **kwargs):
         '''
         @param config_file: configuration file, must be a properties file
         @param log_file: log file absolute path
         '''
-        super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_number, **kwargs)
+        super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_compontent_private_default_value(self):
         self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
@@ -149,7 +150,7 @@ class VODPerfTest(VEXPerfTestBase):
     def dispatch_task(self):
         self.logger.debug('Start to dispatch task')
         if self.current_processs_concurrent_request_number == 0:
-            self.logger.warn('Current request number for this process(%s) is 0, exit.' % (self.current_process_number))
+            self.logger.warn('Current request number for this process(%s) is 0, exit.' % (self.current_process_index))
             exit(0)
         
         if hasattr(self, 'test_warmup_period_minute'):
@@ -205,9 +206,12 @@ class VODPerfTest(VEXPerfTestBase):
         return warm_up_second_list
 
 if __name__ == '__main__':
+    current_process_index = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    print 'current_process_index is %s' % (current_process_index)
+    
     here = os.path.dirname(os.path.realpath(__file__))
     config_file = here + os.sep + 'config.properties'
     golden_config_file = here + os.sep + 'config-golden.properties'
     
-    pert_test = VODPerfTest(config_file, golden_config_file=golden_config_file)
+    pert_test = VODPerfTest(config_file, current_process_index, golden_config_file=golden_config_file)
     pert_test.run()
