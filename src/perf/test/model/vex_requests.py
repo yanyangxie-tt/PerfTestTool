@@ -5,7 +5,7 @@ from utility import time_util
 
 class VEXRequest(object):
     def  __init__(self,):
-        self.response_logger_formatter = '%s response for task[%s]:\n%s'
+        pass
     
     def get_response(self, task, timeout=3):
         now = time_util.get_local_now()

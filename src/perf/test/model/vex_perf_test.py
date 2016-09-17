@@ -12,13 +12,15 @@ import traceback
 from apscheduler.scheduler import Scheduler
 
 from perf.test.model.configuration import Configurations
+from perf.test.model.psn import PSNEvents
 from perf.test.model.task import VEXScheduleReqeustsTask
 from perf.test.model.vex_counter import VEXMetricCounter
 from perf.test.model.vex_requests import VEXRequest
-from utility import vex_util, time_util, logger_util, ip_util, file_util
+from utility import vex_util, time_util, logger_util, ip_util, file_util, \
+    common_util
 
 
-class VEXPerfTestBase(Configurations, VEXRequest):
+class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def __init__(self, config_file, current_process_index=0, **kwargs):
         '''
         @param config_file: configuration file, must be a properties file
@@ -157,6 +159,9 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         # if self.psn_send or self.psn_fake_send or self.psn_endall_send:
         if self._has_attr('psn_send') and self._has_attr('psn_fake_send') and self._has_attr('psn_endall_send'):
             self.send_psn_message = True
+            self.psn = PSNEvents()
+            self.psn.init_logger(self.logger)
+            
             self._set_attr('psn_apschdule_threadpool_core_threads', 100, False)
             self._set_attr('psn_apschdule_threadpool_max_threads', 100, False)
             self._set_attr('psn_apschdule_queue_max', 100000, False)
@@ -171,6 +176,11 @@ class VEXPerfTestBase(Configurations, VEXRequest):
             
             self.psn_sched = self._init_apsched(gconfig)
             self.psn_sched.start()
+            
+            if self._has_attr('fake_psn_position') and self._has_attr('fake_psn_tracking_id'):
+                self.fake_psn_tracking_position_id_dict = {int(psn_position):self.fake_psn_tracking_id for psn_position in self.fake_psn_position}
+            else:
+                self.fake_psn_tracking_position_id_dict = {}
     
     def setup_test_machine_conccurent_request_number(self):
         if not hasattr(self, 'test_machine_hosts'):
@@ -199,6 +209,28 @@ class VEXPerfTestBase(Configurations, VEXRequest):
             self.logger.info('Test content names are from %s to %s' % (self.test_content_name_list[0], self.test_content_name_list[-1]))
         else:
             self.logger.info('Test content name is %s' % (self.test_content_name_list[0]))
+    
+    def send_psn(self, task, psn_tracking_position_id_dict, psn_gap_list):
+        if psn_tracking_position_id_dict is None or len(psn_tracking_position_id_dict) == 0:
+            return
+        
+        try:
+            psn_event_list = self.generate_psn_scheduled_event_list(psn_tracking_position_id_dict, psn_gap_list, segment_time=self.client_response_content_segment_time)
+            self.logger.debug('PSN event list is:%s' % (str(psn_event_list)))
+            self.schedule_psn_event(self.psn_sched, psn_event_list, task.get_client_ip(), self.psn_receiver_host, self.psn_receiver_port, tag='normal')
+        except:
+            exce_info = 'Line %s: %s' % ((sys.exc_info()[2]).tb_lineno, sys.exc_info()[1])
+            self.logger.error("Failed to send normal PSN message. Exception: %s." % (exce_info))
+    
+    def send_endall_psn(self, task):
+        try:
+            matched_sid = common_util.matched_string(task.get_bitrate_url(), '&sid=([^&]*)')
+            sid = matched_sid[0] if matched_sid is not None and len(matched_sid) > 0 else None
+            if sid:
+                self.schedule_end_all_psn_event(self.psn_sched, sid, self.psn_endall_position, self.psn_receiver_host, self.psn_receiver_port, tag='endall')
+        except:
+            exce_info = 'Line %s: %s' % ((sys.exc_info()[2]).tb_lineno, sys.exc_info()[1])
+            self.logger.error("Failed to send normal PSN message. Exception: %s." % (exce_info))
     
     def dump_summary_statistical_data(self):
         cost_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
@@ -231,8 +263,13 @@ class VEXPerfTestBase(Configurations, VEXRequest):
         file_util.write_file(self.test_result_report_error_dir, delta_error_file, datas, mode='a', is_delete=True)
     
     def dump_traced_bitrate_contents(self):
-        # self.test_result_report_traced_dir = self.test_result_dir + self.test_result_report_traced_dir
-        pass
+        if self.bitrate_record_queue.empty():
+            return
+
+        datas = vex_util.get_datas_in_queue(self.bitrate_record_queue)
+        delta_traced_file = vex_util.get_timed_file_name(self.test_result_report_traced_file)
+        self.logger.info('Export delta traced report file to %s/%s at %s' % (self.test_result_report_traced_dir, delta_traced_file, time_util.get_local_now()))
+        file_util.write_file(self.test_result_report_traced_dir, delta_traced_file, datas, mode='a', is_delete=True)
      
     def startup_reporter(self):
         if hasattr(self, 'test_case_counter_dump_interval'):
@@ -328,8 +365,6 @@ class VEXPerfTestBase(Configurations, VEXRequest):
             self.dump_summary_statistical_data()
             self.dump_traced_bitrate_contents()
             self.dump_delta_error_details()
-            # export_traced_response_info()
-            # if check_response: export_error_response_info()
             
             self.logger.info('Load test finished at %s' % (current_date))
             self.dispatch_task_sched.shutdown(False)

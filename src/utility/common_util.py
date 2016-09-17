@@ -2,9 +2,9 @@
 # author: yanyang.xie@gmail.com
 
 import os
+import re
 import string
 import sys
-from random import random
 
 
 def get_config_value_by_key(config_dict, key, default_value=None):
@@ -64,3 +64,6 @@ def merge_properties(original_properties_file, change_properties_file):
         
 def get_script_current_dir():
     return os.path.split(os.path.realpath(sys.argv[0]))[0]
+
+def matched_string(t_string, reg):
+    return re.findall(reg, t_string)
