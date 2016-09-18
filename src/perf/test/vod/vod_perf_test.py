@@ -44,7 +44,7 @@ class VODPerfTest(VEXPerfTestBase):
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
-            if self._has_attr('use_fake'):
+            if self._has_attr('use_fake') is True:
                 response, used_time, response_text, status_code = self._get_fake_response(index=True)
             else:
                 response, used_time = self._get_vex_response(task, tag='Index')
@@ -80,7 +80,7 @@ class VODPerfTest(VEXPerfTestBase):
         # print self.bitrate_counter
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
-            if self._has_attr('use_fake'):
+            if self._has_attr('use_fake') is True:
                 response, used_time, response_text, status_code = self._get_fake_response(index=False)
             else:
                 response, used_time = self._get_vex_response(task, tag='Bitrate')

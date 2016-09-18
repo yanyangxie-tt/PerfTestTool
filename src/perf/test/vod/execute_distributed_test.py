@@ -10,12 +10,13 @@ Distributed load test script
 from fabric.context_managers import cd, lcd
 from fabric.contrib.files import exists
 from fabric.decorators import task, parallel, roles
-from fabric.operations import run, put
+from fabric.operations import run, put, local
 from fabric.state import env
 from fabric.tasks import execute
 
 from init_script_env import *
 from utility import fab_util
+
 
 load_test_script_file_name = 'execute_multi_test.py'
 
@@ -40,13 +41,13 @@ perf_test_script_zip_name = 'perftest.zip'
 perf_test_script_zip_tmp_dir = '/tmp'
 perf_test_script_zip_file = perf_test_script_zip_tmp_dir + os.sep + perf_test_script_zip_name
 
-'''
 with lcd(project_source_dir):
     if os.path.exists(perf_test_script_zip_file):
+        print 'delete %s' % (perf_test_script_zip_file)
         os.remove(perf_test_script_zip_file)
     
-    local('zip -r %s perf utility' % (perf_test_script_zip_file))
-'''
+    zip_command = 'zip -r %s perf utility' % (perf_test_script_zip_file)
+    local(zip_command)
 
 @task
 @parallel
@@ -66,7 +67,7 @@ def rm_vod_test_log():
 @task
 @parallel
 @roles(server_role_name)
-def execute_load_test():
+def upload_test_script():
     # create script folder in remote machine
     if exists(remote_script_tmp_dir):
         run('rm -rf %s' % (remote_script_tmp_dir))
@@ -80,13 +81,18 @@ def execute_load_test():
         # unzip - o / Users / xieyanyang / work / learning / autodeploy / src / autodeploy / core_vex / vex.zip - d / tmp / deploy - core - vex
         run('unzip -o %s -d %s' % (perf_test_script_zip_name, remote_script_tmp_dir))
         run('rm -rf %s/%s' % (remote_script_tmp_dir, perf_test_script_zip_name))
-    
+
+@task
+@parallel
+@roles(server_role_name)
+def execute_load_test():
     # start load test
     with cd(remote_script_tmp_dir + package_path):
         run('nohup python %s > %s' % (load_test_script_file_name, remote_script_tmp_dir + package_path + '/vod_test.log'), shell=False, pty=True, quiet=False)
 
 if __name__ == '__main__':              
     execute(kill_vod_test)
-    # execute(rm_vod_test_log)
+    execute(rm_vod_test_log)
+    execute(upload_test_script)
     # execute(execute_load_test)
     
