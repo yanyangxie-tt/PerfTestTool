@@ -94,58 +94,51 @@ class VODManifestChecker(ManifestPaser):
         self.error = None
     
     def check(self, media_sequence_number, entertainment_ts_number, end_list_tag, drm_tag,
-              ad_mid_position_list, pre_ad_number, mid_ad_number, post_ad_number,
-              iframe_tag='iframe', ad_iframe_tag='ad_iframe', audio_tag='audio', ad_audio_tag='audio'):
+              ad_mid_position_list, ad_pre_number, ad_mid_number, ad_post_number,
+              iframe_tag='IsIFrame=true', ad_iframe_tag='ad_iframe', audio_tag='IsAudio=true', ad_audio_tag='ad_audio'):
         
+        message = None
         while True:
             if self.has_asset_id is not True:
                 message = 'Not found same asset id from manifest. url:%s, manifest:%s' % (self.request_url, self.manifest)
                 break
-        
-            if self.sequence_number != media_sequence_number:
+            elif self.sequence_number != media_sequence_number:
                 message = 'Manifest media sequence number is %s, not the same as expected number %s' % (self.sequence_number, media_sequence_number)
                 break
-            
-            if self.entertainment_ts_number != entertainment_ts_number:
+            elif self.entertainment_ts_number != entertainment_ts_number:
                 message = 'Manifest entertainment ts number is %s, not the same as expected number %s' % (self.entertainment_ts_number, entertainment_ts_number)
                 break
-            
-            if self.manifest.find('end_list_tag') < 0:
+            elif self.manifest.find(end_list_tag) < 0:
                 message = 'Manifest has not end list tag %s' % (end_list_tag)
                 break
-            
-            if self.manifest.find('drm_tag') < 0:
+            elif self.manifest.find(drm_tag) < 0:
                 message = 'Manifest has not drm tag %s' % (drm_tag)
                 break
-            
-            if self.ad_mid_position_list != ad_mid_position_list:
+            elif self.ad_mid_position_list != ad_mid_position_list:
                 message = 'Manifest ad positions is %s, not the same as expected %s' % (self.ad_mid_position_list, ad_mid_position_list)
                 break
-            
-            if self.pre_ad_number != pre_ad_number:
-                message = 'Manifest ad preroll number number is %s, not the same as expected number %s' % (self.pre_ad_number, pre_ad_number)
+            elif self.ad_pre_number != ad_pre_number:
+                message = 'Manifest ad preroll number number is %s, not the same as expected number %s' % (self.ad_pre_number, ad_pre_number)
                 break
-            
-            if self.mid_ad_number != mid_ad_number:
-                message = 'Manifest ad midroll number number is %s, not the same as expected number %s' % (self.mid_ad_number, mid_ad_number)
+            elif self.ad_mid_number != ad_mid_number:
+                message = 'Manifest ad midroll number number is %s, not the same as expected number %s' % (self.ad_mid_number, ad_mid_number)
                 break
-            
-            if self.post_ad_number != post_ad_number:
-                message = 'Manifest ad postroll number number is %s, not the same as expected number %s' % (self.post_ad_number, post_ad_number)
+            elif self.ad_post_number != ad_post_number:
+                message = 'Manifest ad postroll number number is %s, not the same as expected number %s' % (self.ad_post_number, ad_post_number)
                 break
-            
-            if self.request_url.find(iframe_tag) > 0 and self.manifest.find(ad_iframe_tag) < 0:
-                message = 'Manifest has not ad iframe tag %s, which exists in url %s' % (self.ad_iframe_tag, self.request_url)
+            elif self.request_url.find(iframe_tag) > 0 and self.manifest.find(ad_iframe_tag) < 0:
+                message = 'Manifest has not ad iframe tag %s, but %s is found in url %s' % (ad_iframe_tag, iframe_tag, self.request_url)
                 break
-            
-            if self.request_url.find(audio_tag) > 0 and self.manifest.find(ad_audio_tag) < 0:
-                message = 'Manifest has not ad audio tag %s, which exists in url %s' % (self.ad_audio_tag, self.request_url)
+            elif self.request_url.find(audio_tag) > 0 and self.manifest.find(ad_audio_tag) < 0:
+                message = 'Manifest has not ad audio tag \'%s\', but %s is found in url %s' % (ad_audio_tag, audio_tag, self.request_url)
+                break
+            else:
                 break
         self.error = message
         return self.error
 
 if __name__ == '__main__':    
-    request_url = 'www.baidu.com/vod_test_1/index.m3u8'
+    request_url = 'http://mm.vod.comcast.net:80/origin/playlists/vod_test_7975/king/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/vod_test_7975_med_3.m3u8?&IndexName=index.m3u8&BitRelLength=176&ProviderId=vod_test_7975&AssetId=abcd1234567890123456&StreamType=VOD_T6&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00&sid=VEX_27a749ad-b7af-4f10-ac9f-ebcf2f6ada27&ResourceId=4cb23d3428c74396cddf92159780bf72&BW=2050300&MinBW=2050100&IsIFrame=false&IsAudio=false&HasIFrame=true&HasAudio=true&HasSAP=false&IsSAP=false&CODEC=AAC'
     manifest = '''
     ad_1.ts\n
     vod_1.ts\n
@@ -157,8 +150,12 @@ if __name__ == '__main__':
     ad_3.ts\n
     '''
     
+    with open('/Users/xieyanyang/work/learning/PerfTest/src/perf/test/vod/fake/bitrate-fake-response.txt') as f:
+        manifest = f.read()
+    
     v = VODManifestChecker(manifest, request_url, psn_tag=None, ad_tag='ad', asset_id_tag='vod_')
     print v.ad_pre_number
     print v.ad_post_number
     print v.ad_mid_number
     print v.ad_mid_position_list
+    print v.check(18, 900, '#EXT-X-ENDLIST', 'EXT-X-FAXS-CM', [225, 450, 675], 10, 30, 10)

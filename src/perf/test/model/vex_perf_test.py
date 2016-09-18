@@ -103,6 +103,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.test_result_report_traced_dir = self.test_result_dir + self.test_result_report_traced_dir
 
     def init_log(self, log_file, log_level, log_name=None):
+        print log_file
         logger_util.setup_logger(log_file, name=log_name, log_level=log_level)
         self.logger = logging.getLogger(name=log_name)
     
@@ -157,7 +158,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def init_psn_sched(self):
         # if self.psn_send or self.psn_fake_send or self.psn_endall_send:
-        if self._has_attr('psn_send') and self._has_attr('psn_fake_send') and self._has_attr('psn_endall_send'):
+        if self._has_attr('psn_send') is True or self._has_attr('psn_fake_send') is True or self._has_attr('psn_endall_send') is True:
             self.send_psn_message = True
             self.psn = PSNEvents()
             self.psn.init_logger(self.logger)
@@ -216,7 +217,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         
         try:
             psn_event_list = self.generate_psn_scheduled_event_list(psn_tracking_position_id_dict, psn_gap_list, segment_time=self.client_response_content_segment_time)
-            self.logger.debug('PSN event list is:%s' % (str(psn_event_list)))
+            self.logger.info('PSN event list is:%s' % (str(psn_event_list)))
             self.schedule_psn_event(self.psn_sched, psn_event_list, task.get_client_ip(), self.psn_receiver_host, self.psn_receiver_port, tag='normal')
         except:
             exce_info = 'Line %s: %s' % ((sys.exc_info()[2]).tb_lineno, sys.exc_info()[1])
@@ -237,9 +238,9 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag='Index response summary')
         bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag='Bitrate response summary')
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
-        self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_log_file, time_util.get_local_now()))
+        self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_report_file, time_util.get_local_now()))
         self.logger.info(statistical_data)
-        file_util.write_file(self.test_result_dir, self.test_result_log_file, statistical_data, mode='a', is_delete=True)
+        file_util.write_file(self.test_result_dir, self.test_result_report_file, statistical_data, mode='a', is_delete=True)
     
     def dump_delta_statistical_data(self):
         index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag='Index response summary')

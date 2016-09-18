@@ -1,16 +1,15 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
-import os
-import sys
 import time
-import requests
 
-sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../.."))
+from requests.models import Response
 
+from init_script_env import *
 from perf.test.model.vex_perf_test import VEXPerfTestBase
 from perf.test.parser.manifest import VODManifestChecker
 from utility import time_util, manifest_util
+
 
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -25,24 +24,36 @@ class VODPerfTest(VEXPerfTestBase):
         self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
     
     # linear vod, cdvr do_index is the same
+    def _get_fake_response(self, index=True):
+        r = Response()
+        response_text, status_code = ('no fake file', 200)
+        
+        fake_att_name = 'index-fake-response' if index else 'bitrate-fake-response'
+        if hasattr(self, fake_att_name):
+            response_text = getattr(self, fake_att_name)
+        else:
+            fake_dir = 'fake'
+            fake_response_name = 'index-fake-response.txt' if index else 'bitrate-fake-response.txt'
+            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + '%s/%s' % (fake_dir, fake_response_name)
+            if os.path.exists(fake_response_file):
+                with open(fake_response_file) as f:
+                    response_text = f.read()
+                    setattr(self, fake_att_name, response_text)
+        return r, 201, response_text, status_code
+    
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
-            
-            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'fake/index-fake-response.txt'
-            if os.path.exists(fake_response_file):
-                response = requests.get('http://www.baidu.com')
-                f = open(fake_response_file)
-                response_text = f.read()
-                used_time = 201
+            if self._has_attr('use_fake'):
+                response, used_time, response_text, status_code = self._get_fake_response(index=True)
             else:
                 response, used_time = self._get_vex_response(task, tag='Index')
-                response_text = response.text
-            
+                response_text, status_code = response.text, response.status_code
+                
             if response is None:
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
                 return
-            elif response.status_code != 200:
+            elif status_code != 200:
                 self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
                 return
@@ -57,68 +68,66 @@ class VODPerfTest(VEXPerfTestBase):
                 start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=delta_milliseconds)
                 b_task.set_bitrate_url(bitrate_url)
                 b_task.set_start_date(start_date)
-                self.logger.debug('Schedule bitrate request. task:%s' % (b_task))
+                self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
                 self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
         except Exception, e:
             print e
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error=True)
-            self.logger.error('Failed to index request.', e)
+            self.logger.error('Failed to index request. %s' % (e), exc_info=1)
     
     # linear vod, cdvr do_bitrate, get_response之前都一样，可以提取公共的。接下来的check，linear和cdvr继续发送bitrate请求这里单独写    
     def do_bitrate(self, task):
+        # print self.bitrate_counter
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
-            
-            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'fake/bitrate-fake-response.txt'
-            if os.path.exists(fake_response_file):
-                response = requests.get('http://www.baidu.com')
-                f = open(fake_response_file)
-                response_text = f.read()  # 如果不check或者不发psn, 无需读取response
-                used_time = 200
+            if self._has_attr('use_fake'):
+                response, used_time, response_text, status_code = self._get_fake_response(index=False)
             else:
                 response, used_time = self._get_vex_response(task, tag='Bitrate')
                 response_text = response.text
+                status_code = response.status_code
                 
             if response is None:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
                 return
-            elif response.status_code != 200:
+            elif status_code != 200:
                 self.logger.warn('Failed to bitrate request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
                 return
             else:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=False)
             
-            if not self.send_psn_message and not self._has_attr('client_response_check_when_running'):
+            if not self._has_attr('send_psn_message') and not self._has_attr('client_response_check_when_running'):
                 return
             
             self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
             checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_')
+            
             if self._has_attr('client_response_check_when_running'):
                 self.check_response(task, checker)
             
-            if self.send_psn_message:
+            if self._has_attr('send_psn_message'):
                 psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
-                
-                if self._has_attr('psn_send'):
+                if self._has_attr('psn_send') is True:
                     self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
-                elif self._has_attr('psn_fake_send'):
+                elif self._has_attr('psn_fake_send') is True:
                     self.send_psn(task, self.fake_psn_tracking_position_id_dict, psn_gap_list)
                 
-                if self._has_attr('psn_endall_send'):
+                if self._has_attr('psn_endall_send') is True:
                     self.send_endall_psn(task)
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error=True)
             self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
-    
+        
     def check_response(self, task, manifest_checker):
         error_message = manifest_checker.check(self.client_response_media_sequence, self.client_response_content_segment_number,
                 self.client_response_endlist_tag, self.client_response_drm_tag, self.client_response_ad_mid_roll_position, self.client_response_ad_pre_roll_ts_number,
                 self.client_response_ad_mid_roll_ts_number, self.client_response_ad_post_roll_ts_number,)
-        if error_message is not None:
-            self.logger.error(error_message)
+        if error_message is not None and error_message != '':
+            # self.logger.error('%s, Manifest:%s' % (error_message, manifest_checker.manifest))
+            self.logger.error('%s' % (error_message))
             self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
-    
+        
     def _get_vex_response(self, task, tag='Index'):
         response, used_time = None, 0
         try:
@@ -181,6 +190,7 @@ class VODPerfTest(VEXPerfTestBase):
                 task = self.task_queue.get(True, 6)
                 start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
                 task.set_start_date(start_date)
+                self.logger.debug('Task will be execute at %s. task:%s' % (start_date, task))
                 self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
             except Exception, e:
                 self.logger.error('Failed to fetch task from task queue', e)

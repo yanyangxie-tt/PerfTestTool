@@ -1,13 +1,9 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
-import re
 import sys
-
 import requests
-
 from utility import time_util
-
 
 class PSNEvents(object):
     def __init__(self, log_name=None):
@@ -100,6 +96,7 @@ class PSNEvents(object):
             self.logger.error(exce_info)
     
     def post_end_all_psn_notification(self, psn_receiver_host, psn_receiver_port, session_id, timeout=2):
+        self.logger.info('Post endall PSN message to server')
         url = self.psn_url_formatter % (psn_receiver_host, psn_receiver_port)
         i_headers = {"Content-Type":"application/xml"}
         
