@@ -81,4 +81,3 @@ if __name__ == '__main__':
     print task.get_start_date()
     print c_task.get_start_date()
     print task
-

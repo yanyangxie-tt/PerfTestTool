@@ -3,8 +3,8 @@
 
 import sys
 import threading
-import requests
 
+from perf.test.model.vex_requests import VEXRequest
 from utility import time_util
 
 class PSNEvents(object):
@@ -103,7 +103,7 @@ class PSNEvents(object):
             self.logger.error(exce_info)
     
     def post_end_all_psn_notification(self, psn_receiver_host, psn_receiver_port, session_id, timeout=2):
-        self.logger.info('Post endall PSN message to server')
+        self.logger.debug('Post endall PSN message to server')
         url = self.psn_url_formatter % (psn_receiver_host, psn_receiver_port)
         i_headers = {"Content-Type":"application/xml"}
         
@@ -194,7 +194,11 @@ class PSNEvents(object):
         return tracking_id_delay_seconds_dict
     
     def post(self, url, data=None, headers={}, timeout=3):
-        requests.post(url, data, headers=headers, timeout=timeout)
+        try:
+            VEXRequest.post(url, data, headers=headers, timeout=timeout)
+            # requests.post(url, data, headers=headers, timeout=timeout)
+        except Exception, e:
+            self.logger.error(e)
 
 if __name__ == '__main__':
     psn = PSNEvents()

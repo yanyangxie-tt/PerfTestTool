@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
+import os
 import re
 
 class ManifestPaser(object):
@@ -138,19 +139,8 @@ class VODManifestChecker(ManifestPaser):
         return self.error
 
 if __name__ == '__main__':    
-    request_url = 'http://mm.vod.comcast.net:80/origin/playlists/vod_test_7975/king/9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999/vod_test_7975_med_3.m3u8?&IndexName=index.m3u8&BitRelLength=176&ProviderId=vod_test_7975&AssetId=abcd1234567890123456&StreamType=VOD_T6&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00&sid=VEX_27a749ad-b7af-4f10-ac9f-ebcf2f6ada27&ResourceId=4cb23d3428c74396cddf92159780bf72&BW=2050300&MinBW=2050100&IsIFrame=false&IsAudio=false&HasIFrame=true&HasAudio=true&HasSAP=false&IsSAP=false&CODEC=AAC'
-    manifest = '''
-    ad_1.ts\n
-    vod_1.ts\n
-    vod_2.ts\n
-    ad_2.ts\n
-    vod_3.ts\n
-    ad_3.ts\n
-    vod_4.ts\n
-    ad_3.ts\n
-    '''
-    
-    with open('/Users/xieyanyang/work/learning/PerfTest/src/perf/test/vod/fake/bitrate-fake-response.txt') as f:
+    request_url = 'http://mm.vod.comcast.net:80/origin/playlists/vod_test_7975/king/99999999/vod_test_7975_med_3.m3u8?&IndexName=index.m3u8&BitRelLength=176&ProviderId=vod_test_7975&AssetId=abcd1234567890123456&StreamType=VOD_T6&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00&sid=VEX_27a749ad-b7af-4f10-ac9f-ebcf2f6ada27&ResourceId=4cb23d3428c74396cddf92159780bf72&BW=2050300&MinBW=2050100&IsIFrame=false&IsAudio=false&HasIFrame=true&HasAudio=true&HasSAP=false&IsSAP=false&CODEC=AAC'
+    with open(os.path.dirname(os.path.realpath(__file__)) + '/../vod/fake/bitrate-fake-response.txt') as f:
         manifest = f.read()
     
     checker = VODManifestChecker(manifest, request_url, psn_tag=None, ad_tag='ad', asset_id_tag='vod_')
