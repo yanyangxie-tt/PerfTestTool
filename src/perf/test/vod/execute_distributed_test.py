@@ -1,5 +1,5 @@
-#!/usr/bin/python
 # -*- coding=utf-8 -*-
+# author: yanyang.xie@gmail.com
 
 '''
 Distributed load test script
@@ -16,21 +16,9 @@ from fabric.operations import run, put, local
 from fabric.tasks import execute
 
 from init_script_env import *
-from utility import fab_util, common_util
 
 project_dir, package_path = here.split('src')
 project_source_dir = project_dir + os.sep + 'src'
-
-def read_configurations():
-    if not os.path.exists(config_file):
-        print 'Configuration file \'%s\' does not exist'
-        exit(1)
-    
-    print 'Read configurtion files and setup fabric env'
-    config_dict = common_util.load_properties(config_file)
-    if os.path.exists(golden_config_file):
-        config_dict.update(common_util.load_properties(golden_config_file))
-    return config_dict
 
 def set_fabric_env(config_dict):
     user = common_util.get_config_value_by_key(config_dict, 'test.machine.username', 'root')

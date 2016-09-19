@@ -1,6 +1,8 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
+import os
+import sys
 import time
 
 from requests.models import Response
@@ -9,7 +11,6 @@ from init_script_env import *
 from perf.test.model.vex_perf_test import VEXPerfTestBase
 from perf.test.parser.manifest import VODManifestChecker
 from utility import time_util, manifest_util
-
 
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -219,9 +220,9 @@ if __name__ == '__main__':
     current_process_index = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     print 'current_process_index is %s' % (current_process_index)
     
-    # here = os.path.dirname(os.path.realpath(__file__))
-    # config_file = here + os.sep + 'config.properties'
-    # golden_config_file = here + os.sep + 'config-golden.properties'
+    here = os.path.dirname(os.path.realpath(__file__))
+    config_file = here + os.sep + 'config.properties'
+    golden_config_file = here + os.sep + 'config-golden.properties'
     
     pert_test = VODPerfTest(config_file, current_process_index, golden_config_file=golden_config_file)
     pert_test.run()
