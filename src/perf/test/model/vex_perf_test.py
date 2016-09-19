@@ -339,10 +339,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         sched.configure(gconfig)
         return sched
     
-    def _increment_counter(self, counter_obj, counter_lock, response_time=0, is_error=False):
+    def _increment_counter(self, counter_obj, counter_lock, response_time=0, is_error_request=False, is_error_response=False):
         with counter_lock:
-            if is_error:
+            if is_error_request:
                 counter_obj.increment_error()
+            elif is_error_response:
+                counter_obj.increment_error_response()
             else:
                 counter_obj.increment(response_time)
 
@@ -361,15 +363,15 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             
             self.logger.info('#' * 100)
             self.logger.info('Reach load test time limitation %s. Shutdown sched and flush statistics info into local file.' % (self.test_case_survival))
-            self.dump_summary_statistical_data()
-            self.dump_traced_bitrate_contents()
-            self.dump_delta_error_details()
-            
             self.dispatch_task_sched.shutdown(False)
             self.task_consumer_sched.shutdown(True)
             self.report_sched.shutdown(False)
             if self.send_psn_message: 
                 self.psn_sched.shutdown(False)
+            
+            self.dump_summary_statistical_data()
+            self.dump_traced_bitrate_contents()
+            self.dump_delta_error_details()
             self.logger.info('Load test finished at %s' % (current_date))
         except Exception, e:
             exc_type, exc_value, exc_tb = sys.exc_info() 

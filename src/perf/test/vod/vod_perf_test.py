@@ -49,14 +49,14 @@ class VODPerfTest(VEXPerfTestBase):
                 response_text, status_code = response.text, response.status_code
                 
             if response is None:
-                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
                 self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
-                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=True)
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
                 return
             
-            self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error=False)
+            self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=False)
             self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
             bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number)
@@ -69,7 +69,7 @@ class VODPerfTest(VEXPerfTestBase):
                 self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
                 self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
         except Exception, e:
-            self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error=True)
+            self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
             self.logger.error('Failed to index request. %s' % (e), exc_info=1)
     
     # linear vod, cdvr do_bitrate, get_response之前都一样，可以提取公共的。接下来的check，linear和cdvr继续发送bitrate请求这里单独写    
@@ -84,14 +84,14 @@ class VODPerfTest(VEXPerfTestBase):
                 status_code = response.status_code
                 
             if response is None:
-                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
                 self.logger.warn('Failed to bitrate request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
-                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=True)
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
                 return
             else:
-                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error=False)
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
             
             if not self._has_attr('send_psn_message') and not self._has_attr('client_response_check_when_running'):
                 return
@@ -112,7 +112,7 @@ class VODPerfTest(VEXPerfTestBase):
                 if self._has_attr('psn_endall_send') is True:
                     self.send_endall_psn(task)
         except Exception, e:
-            self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error=True)
+            self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error_request=True)
             self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
         
     def check_response(self, task, manifest_checker):
@@ -123,6 +123,7 @@ class VODPerfTest(VEXPerfTestBase):
             # self.logger.error('%s, Manifest:%s' % (error_message, manifest_checker.manifest))
             self.logger.error('%s' % (error_message))
             self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
+            self._increment_counter(self.bitrate_counter, self.bitrate_lock, is_error_response=True)
         
     def _get_vex_response(self, task, tag='Index'):
         response, used_time = None, 0

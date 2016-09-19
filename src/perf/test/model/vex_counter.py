@@ -9,12 +9,14 @@ class VEXMetricCounter(MetricCounter):
         self.total_count = 0
         self.succeed_total_count = 0
         self.error_total_count = 0
-        self.sum_number = 0
+        self.response_time_sum = 0
+        self.response_error_total_count = 0
         
         self.delta_total_count = 0
         self.delta_succeed_total_count = 0
         self.delta_error_total_count = 0
-        self.delta_sum_number = 0
+        self.delta_response_sum = 0
+        self.delta_response_error_total_count = 0
     
     def increment_error(self):
         self.error_total_count += 1
@@ -22,28 +24,32 @@ class VEXMetricCounter(MetricCounter):
         
         self.total_count += 1
         self.delta_total_count += 1
+        
+    def increment_error_response(self):
+        self.response_error_total_count += 1
+        self.delta_response_error_total_count += 1
     
-    def increment(self, number):
-        '''increase 1 if number meets one metric range'''
-        if number > self.max:
+    def increment(self, response_time):
+        '''increase 1 if response_time meets one metric range'''
+        if response_time > self.max:
             return
         
         for metric in self.metric_list:
-            if metric.increase(number):
+            if metric.increase(response_time):
                 break
         
         for metric in self.delta_metric_list:
-            if metric.increase(number):
+            if metric.increase(response_time):
                 break    
         
-        # to vex, number is response time
+        # to vex, response_time is response time
         self.total_count += 1
         self.succeed_total_count += 1
-        self.sum_number += number
+        self.response_time_sum += response_time
         
         self.delta_total_count += 1
         self.delta_succeed_total_count += 1
-        self.delta_sum_number += number
+        self.delta_response_sum += response_time
         
     def dump_delta_metric(self):
         '''dump delta metric string'''
@@ -53,35 +59,37 @@ class VEXMetricCounter(MetricCounter):
         self.delta_total_count = 0
         self.delta_succeed_total_count = 0
         self.delta_error_total_count = 0
-        self.delta_sum_number = 0
+        self.delta_response_sum = 0
+        self.delta_response_error_total_count = 0
         
         for metric in self.delta_metric_list:
             metric.count = 0
     
     def get_summary(self):
-        return [self.total_count, self.succeed_total_count, self.error_total_count, self.sum_number, self.metric_list]
+        return [self.total_count, self.succeed_total_count, self.error_total_count, self.response_time_sum, self.response_error_total_count, self.metric_list]
     
     def get_delta_summary(self):
-        return [self.delta_total_count, self.delta_succeed_total_count, self.delta_error_total_count, self.delta_sum_number, self.delta_metric_list]
+        return [self.delta_total_count, self.delta_succeed_total_count, self.delta_error_total_count, self.delta_response_sum, self.delta_response_error_total_count, self.delta_metric_list]
     
     def dump_counter_info(self, counter_period, delta=False, tag='Response summary',):
-        total_count, succeed_total_count, error_total_count, sum_number, metric_list = self.get_delta_summary() if delta else self.get_summary()
+        total_count, succeed_total_count, error_total_count, response_time_sum, response_error_count, metric_list = self.get_delta_summary() if delta else self.get_summary()
         
         if total_count == 0:
             return ''
         
         summary = ''
-        summary += '%-21s:%s\n' % (tag, '')
-        summary += '%2s%-19s:%-4s seconds\n' % ('', 'Total time', counter_period)
-        summary += '%2s%-19s:%s\n' % ('', 'Total   requests   ', total_count)
-        summary += '%2s%-19s:%s\n' % ('', 'Succeed requests   ', succeed_total_count)
-        summary += '%2s%-19s:%s\n' % ('', 'Failure requests   ', error_total_count)
-        summary += '%2s%-19s:%.2f%%\n' % ('', 'Succeed rate', 100 * (float(succeed_total_count) / total_count))
-        summary += '%2s%-19s:%s\n' % ('', 'Average response', sum_number / succeed_total_count if succeed_total_count != 0 else 0)
-        summary += '%2s%-19s:%s\n' % ('', 'Metric  details', '')
+        summary += '%-24s\n' % (tag)
+        summary += '%2s%-22s: %-4s seconds\n' % ('', 'Perf Test Duration', counter_period)
+        summary += '%2s%-22s: %s\n' % ('', 'Request In Total', total_count)
+        summary += '%2s%-22s: %s\n' % ('', 'Request Succeed', succeed_total_count)
+        summary += '%2s%-22s: %s\n' % ('', 'Request Failure', error_total_count)
+        summary += '%2s%-22s: %.2f%%\n' % ('', 'Request Succeed Rate', 100 * (float(succeed_total_count) / total_count))
+        summary += '%2s%-22s: %s\n' % ('', 'Response Average Time', response_time_sum / succeed_total_count if succeed_total_count != 0 else 0)
+        summary += '%2s%-22s: %s\n' % ('', 'Response Failure', response_error_count)
+        summary += '%2s%-22s\n' % ('', 'Response Time Distribution')
         
         for metric in metric_list:
-            summary += '%4s%-10s milliseconds:%s\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[1]), metric.count)
+            summary += '%6s%-10s milliseconds: %s\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[1]), metric.count)
         return summary
     
     def parser(self, summary_info):
@@ -97,16 +105,6 @@ if __name__ == '__main__':
     c.increment(1000)
     c.increment_error()
     c.increment_error()
+    c.increment_error_response()
     infos = c.dump_delta_metric()
-    # for i in infos:
-    #    print i
-    
-    # print c.get_summary()
-    # print c.get_delta_summary()
-    # print c
-    
-    # c.clear_delta_metric()
-    # print c.get_delta_summary()
     print c.dump_counter_info(10)
-
-    
