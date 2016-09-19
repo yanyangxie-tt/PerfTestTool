@@ -44,7 +44,7 @@ class VODPerfTest(VEXPerfTestBase):
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
-            if self._has_attr('use_fake') is True:
+            if self._has_attr('use_fake_manifest') is True:
                 response, used_time, response_text, status_code = self._get_fake_response(index=True)
             else:
                 response, used_time = self._get_vex_response(task, tag='Index')
@@ -80,7 +80,7 @@ class VODPerfTest(VEXPerfTestBase):
         # print self.bitrate_counter
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
-            if self._has_attr('use_fake') is True:
+            if self._has_attr('use_fake_manifest') is True:
                 response, used_time, response_text, status_code = self._get_fake_response(index=False)
             else:
                 response, used_time = self._get_vex_response(task, tag='Bitrate')
@@ -219,9 +219,9 @@ if __name__ == '__main__':
     current_process_index = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     print 'current_process_index is %s' % (current_process_index)
     
-    here = os.path.dirname(os.path.realpath(__file__))
-    config_file = here + os.sep + 'config.properties'
-    golden_config_file = here + os.sep + 'config-golden.properties'
+    # here = os.path.dirname(os.path.realpath(__file__))
+    # config_file = here + os.sep + 'config.properties'
+    # golden_config_file = here + os.sep + 'config-golden.properties'
     
     pert_test = VODPerfTest(config_file, current_process_index, golden_config_file=golden_config_file)
     pert_test.run()

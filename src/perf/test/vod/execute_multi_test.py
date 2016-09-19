@@ -6,7 +6,7 @@ import os
 import sys
 import time
 
-sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../.."))
+from init_script_env import *
 from utility import common_util
 
 load_test_sub_folder = sys.argv[1] if len(sys.argv) > 1 else ''
