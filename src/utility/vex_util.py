@@ -21,7 +21,7 @@ def get_process_result_tmp_dir(result_dir, test_case_name=None, process_number=N
     return r_dir
 
 def get_test_content_name_list(content_names, offset=0):
-    '''Get test content name list by test_content_names in configuration file'''
+    '''Get test content name list by test_case_content_names in configuration file'''
     p = r'(.*)\[(\d+)~(\d+)\](/*\S*)'  # match test_[1,13]
     test_content_list = []
 

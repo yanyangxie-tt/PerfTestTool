@@ -39,14 +39,17 @@ class VODPerfTest(VEXPerfTestBase):
                     setattr(self, fake_att_name, response_text)
         return r, 201, response_text, status_code
     
+    def _use_fake(self):
+        return self._has_attr('test_use_fake_manifest')
+    
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
-            if self._has_attr('use_fake_manifest') is True:
+            if self._use_fake() is True:
                 response, used_time, response_text, status_code = self._get_fake_response(index=True)
             else:
                 response, used_time = self._get_vex_response(task, tag='Index')
-                response_text, status_code = response.text, response.status_code
+                response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
                 
             if response is None:
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
@@ -76,12 +79,11 @@ class VODPerfTest(VEXPerfTestBase):
     def do_bitrate(self, task):
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
-            if self._has_attr('use_fake_manifest') is True:
+            if self._use_fake() is True:
                 response, used_time, response_text, status_code = self._get_fake_response(index=False)
             else:
                 response, used_time = self._get_vex_response(task, tag='Bitrate')
-                response_text = response.text
-                status_code = response.status_code
+                response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
                 
             if response is None:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
@@ -102,12 +104,12 @@ class VODPerfTest(VEXPerfTestBase):
             if self._has_attr('client_response_check_when_running'):
                 self.check_response(task, checker)
             
-            if self._has_attr('send_psn_message'):
+            if self._has_attr('send_psn_message') is True:
                 psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
                 if self._has_attr('psn_send') is True:
                     self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
                 elif self._has_attr('psn_fake_send') is True:
-                    self.send_psn(task, self.fake_psn_tracking_position_id_dict, psn_gap_list)
+                    self.send_psn(task, self.psn_fake_tracking_position_id_dict, psn_gap_list)
                 
                 if self._has_attr('psn_endall_send') is True:
                     self.send_endall_psn(task)
@@ -159,14 +161,13 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.warn('Current request number for this process(%s) is 0, exit.' % (self.current_process_index))
             exit(0)
         
-        if hasattr(self, 'test_warmup_period_minute'):
+        if hasattr(self, 'test_case_warmup_period_minute'):
             warm_up_second_list = self._generate_warm_up_list()
             # generate warm-up rate
             if len(warm_up_second_list) > 0:
-                self.logger.debug('Warm-up process, warm-up %s minute, warm rate %s' % (self.test_warmup_period_minute, [i for i in warm_up_second_list if i / 60 == 0]))
                 # Fetch tasks by the number of warm_up_second_list, and then add it to task consumer(task sched)
                 for task_number in warm_up_second_list:
-                    self.logger.info('Warm-up stage: Put %s task into task queue' % (task_number))
+                    self.logger.debug('Warm-up stage: Put %s task into task queue' % (task_number))
                     index = 0
                     while index < task_number:
                         task = self.task_queue.get(True, timeout=10)
@@ -193,7 +194,7 @@ class VODPerfTest(VEXPerfTestBase):
                 self.logger.error('Failed to fetch task from task queue', e)
     
     def _generate_warm_up_list(self):
-        warm_up_period_minute = self._has_attr('test_warmup_period_minute')
+        warm_up_period_minute = self._has_attr('test_case_warmup_period_minute')
         if not warm_up_period_minute:
             return []
         

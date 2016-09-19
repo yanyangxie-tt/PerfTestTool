@@ -2,15 +2,18 @@
 # author: yanyang.xie@gmail.com
 
 import sys
+import threading
 import requests
+
 from utility import time_util
 
 class PSNEvents(object):
-    def __init__(self, log_name=None):
-        self.psn_url_formatter = 'http://%s:%s/vex-director/PlacementStatusNotification'
-        
-    def init_logger(self, logger):
+    def __init__(self, logger):
         self.logger = logger
+        self.psn_url_formatter = 'http://%s:%s/vex-director/PlacementStatusNotification'
+        self.psn_count = 0
+        self.endall_psn_count = 0
+        self.psn_lock = threading.RLock()
     
     def schedule_psn_event(self, sched, psn_event_list, client_ip, psn_receiver_host, psn_receiver_port=80, timeout=2, tag=''):
         '''
@@ -68,6 +71,10 @@ class PSNEvents(object):
         '''
         data = template % (client_ip, ps_tracking_id)
         self.logger.debug('Post PSN message to server. URL:%s. Headers:%s. Body:%s' % (url, str(i_headers), data))
+        
+        with self.psn_lock:
+            self.psn_count += 1
+        
         self.post(url, data, i_headers, timeout=timeout)
         
         # if have next PSN events in psn_event_list, need schedule a new event.
@@ -118,6 +125,9 @@ class PSNEvents(object):
         '''
         data = template % (session_id)
         self.logger.debug('Post PSN message to server. URL:%s. Headers:%s. Body:%s' % (url, str(i_headers), data))
+        with self.psn_lock:
+            self.endall_psn_count += 1
+        
         self.post(url, data, i_headers, timeout=timeout)
     
     def generate_psn_scheduled_event_list(self, psn_position_tracking_id_dict, psn_gap_list, segment_time=2):

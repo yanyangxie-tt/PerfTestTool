@@ -5,6 +5,7 @@ from utility import time_util
 
 class VEXRequest(object):
     def  __init__(self,):
+        print 'init VEXRequest'
         pass
     
     def get_response(self, task, timeout=3):

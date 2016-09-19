@@ -158,8 +158,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         # if self.psn_send or self.psn_fake_send or self.psn_endall_send:
         if self._has_attr('psn_send') is True or self._has_attr('psn_fake_send') is True or self._has_attr('psn_endall_send') is True:
             self.send_psn_message = True
-            self.psn = PSNEvents()
-            self.psn.init_logger(self.logger)
+            PSNEvents.__init__(self, self.logger)
             
             self._set_attr('psn_apschdule_threadpool_core_threads', 100, False)
             self._set_attr('psn_apschdule_threadpool_max_threads', 100, False)
@@ -176,10 +175,10 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.psn_sched = self._init_apsched(gconfig)
             self.psn_sched.start()
             
-            if self._has_attr('fake_psn_position') and self._has_attr('fake_psn_tracking_id'):
-                self.fake_psn_tracking_position_id_dict = {int(psn_position):self.fake_psn_tracking_id for psn_position in self.fake_psn_position}
+            if self._has_attr('psn_fake_position') and self._has_attr('psn_fake_tracking_id'):
+                self.psn_fake_tracking_position_id_dict = {int(psn_position):self.psn_fake_tracking_id for psn_position in self.psn_fake_position}
             else:
-                self.fake_psn_tracking_position_id_dict = {}
+                self.psn_fake_tracking_position_id_dict = {}
     
     def setup_test_machine_conccurent_request_number(self):
         if not hasattr(self, 'test_machine_hosts'):
@@ -189,7 +188,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         if type(self.test_machine_hosts) is not list:
             self.test_machine_hosts = self.test_machine_hosts.split(',')
         test_machine_inistace_size = len(self.test_machine_hosts)
-        self.test_machine_current_request_number = self.test_client_concurrent_number / test_machine_inistace_size if self.test_client_concurrent_number > test_machine_inistace_size else 1
+        self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
     
     def setup_processs_concurrent_request_number(self):
         current_number, remainder = divmod(self.test_machine_current_request_number, self.test_execute_process_number)
@@ -199,11 +198,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.current_processs_concurrent_request_number = current_number
     
     def setup_test_contents(self):
-        if not hasattr(self, 'test_content_names'):
-            self.logger.fatal('Test content names must be set. for example: "test.content.names=vod_test_[1~100]"')
+        if not hasattr(self, 'test_case_content_names'):
+            self.logger.fatal('Test content names must be set. for example: "test.case.content.names=vod_test_[1~100]"')
             exit(1)
         
-        self.test_content_name_list = vex_util.get_test_content_name_list(self.test_content_names, offset=0)
+        self.test_content_name_list = vex_util.get_test_content_name_list(self.test_case_content_names, offset=0)
         if len(self.test_content_name_list) > 1:
             self.logger.info('Test content names are from %s to %s' % (self.test_content_name_list[0], self.test_content_name_list[-1]))
         else:
@@ -215,7 +214,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         
         try:
             psn_event_list = self.generate_psn_scheduled_event_list(psn_tracking_position_id_dict, psn_gap_list, segment_time=self.client_response_content_segment_time)
-            self.logger.info('PSN event list is:%s' % (str(psn_event_list)))
+            self.logger.debug('PSN event list is:%s' % (str(psn_event_list)))
             self.schedule_psn_event(self.psn_sched, psn_event_list, task.get_client_ip(), self.psn_receiver_host, self.psn_receiver_port, tag='normal')
         except:
             exce_info = 'Line %s: %s' % ((sys.exc_info()[2]).tb_lineno, sys.exc_info()[1])
@@ -237,7 +236,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag='Bitrate response summary')
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
         self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_report_file, time_util.get_local_now()))
-        self.logger.info(statistical_data)
+        # self.logger.info(statistical_data)
         file_util.write_file(self.test_result_dir, self.test_result_report_file, statistical_data, mode='a', is_delete=True)
     
     def dump_delta_statistical_data(self):
@@ -250,7 +249,13 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         
         delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
         self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_report_delta_dir, delta_report_file, time_util.get_local_now()))
+        self.logger.info(statistical_data)
         file_util.write_file(self.test_result_report_delta_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
+        
+        if self._has_attr('psn_count'):
+            with self.psn_lock:
+                self.logger.info('PSN count: %s, endAll PSN count: %s' % (self.psn_count, self.endall_psn_count))
+                self.psn_count, self.endall_psn_count = (0, 0)
     
     def dump_delta_error_details(self):
         if self.error_record_queue.empty():
