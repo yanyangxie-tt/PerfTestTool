@@ -2,7 +2,6 @@
 # author: yanyang.xie@gmail.com
 
 import time
-from requests.models import Response
 
 from init_script_env import *
 from perf.test.model.vex_perf_test import VEXPerfTestBase
@@ -17,36 +16,16 @@ class VODPerfTest(VEXPerfTestBase):
         '''
         super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
-    def set_compontent_private_default_value(self):
+    def set_component_private_default_value(self):
         self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
         self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
-    
-    # linear vod, cdvr do_index is the same
-    def _get_fake_response(self, index=True):
-        r = Response()
-        response_text, status_code = ('no fake file', 200)
-        
-        fake_att_name = 'index-fake-response' if index else 'bitrate-fake-response'
-        if hasattr(self, fake_att_name):
-            response_text = getattr(self, fake_att_name)
-        else:
-            fake_dir = 'fake'
-            fake_response_name = 'index-fake-response.txt' if index else 'bitrate-fake-response.txt'
-            fake_response_file = os.path.dirname(os.path.realpath(__file__)) + os.sep + '%s/%s' % (fake_dir, fake_response_name)
-            if os.path.exists(fake_response_file):
-                with open(fake_response_file) as f:
-                    response_text = f.read()
-                    setattr(self, fake_att_name, response_text)
-        return r, 201, response_text, status_code
-    
-    def _use_fake(self):
-        return self._has_attr('test_use_fake_manifest')
     
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
             if self._use_fake() is True:
-                response, used_time, response_text, status_code = self._get_fake_response(index=True)
+                index_fake_file = os.path.dirname(os.path.realpath(__file__)) + '/fake/index-fake-response.txt'
+                response, used_time, response_text, status_code = self._get_fake_response(index_fake_file, fake_file_att_name='index_fake_response')
             else:
                 response, used_time = self._get_vex_response(task, tag='Index')
                 response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
@@ -80,7 +59,8 @@ class VODPerfTest(VEXPerfTestBase):
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
             if self._use_fake() is True:
-                response, used_time, response_text, status_code = self._get_fake_response(index=False)
+                bitrate_fake_file = os.path.dirname(os.path.realpath(__file__)) + '/fake/bitrate-fake-response.txt'
+                response, used_time, response_text, status_code = self._get_fake_response(bitrate_fake_file, fake_file_att_name='bitrate_fake_response')
             else:
                 response, used_time = self._get_vex_response(task, tag='Bitrate')
                 response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
@@ -126,26 +106,6 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.error('%s' % (error_message))
             self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, is_error_response=True)
-        
-    def _get_vex_response(self, task, tag='Index'):
-        response, used_time = None, 0
-        try:
-            response, used_time = self.get_response(task, self.test_client_request_timeout)
-        except Exception, e:
-            self.logger.error('Failed to do %s task. %s. %s' % (tag, task, e), exc_info=0)
-            
-            mtries = self.test_client_request_retry_count
-            retry_count = 1
-            while mtries > 1:
-                time.sleep(self.test_client_request_retry_delay)
-                try:
-                    self.logger.debug('Retry index, %s time. task:[%s]' % (retry_count, task))
-                    response, used_time = self.get_response(task, self.test_client_request_timeout)
-                    return response
-                except Exception, e:
-                    self.logger.error('Retry index failed, %s time. task:[%s]' % (retry_count, task))
-                    mtries -= 1
-        return response, used_time
 
     def task_generater(self):
         while True:

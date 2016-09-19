@@ -3,6 +3,7 @@
 
 import Queue
 import logging
+import os
 import random
 import sys
 import threading
@@ -10,6 +11,7 @@ import time
 import traceback
 
 from apscheduler.scheduler import Scheduler
+from requests.models import Response
 
 from perf.test.model.configuration import Configurations
 from perf.test.model.psn import PSNEvents
@@ -17,6 +19,7 @@ from perf.test.model.task import VEXScheduleReqeustsTask
 from perf.test.model.vex_counter import VEXMetricCounter
 from perf.test.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util
+
 
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -31,10 +34,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.init_load_test_start_date()
     
     def init_configured_parameters_default_value(self):
+        # setup default value of performance test
         self.set_vex_common_default_value()
         self.set_compontent_private_default_value()
     
     def set_vex_common_default_value(self):
+        # setup default value of parameters in common for both vod,cdvr and linear 
         self._set_attr('test_case_survival', 600)
         self._set_attr('test_result_report_dir', '/tmp/load-test-result')
         
@@ -62,7 +67,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self._set_attr('psn_fake_send', False)
         self._set_attr('psn_endall_send', False)
         
-        # threadpool parameters: task consumer
+        # thread pool parameters: task consumer
         self._set_attr('task_apschdule_threadpool_core_threads', 100, False)
         self._set_attr('task_apschdule_threadpool_max_threads', 100, False)
         self._set_attr('task_apschdule_queue_max', 100000, False)
@@ -73,7 +78,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         else:
             self.ip_segment_range = [i for i in range(0, 256)]
     
-    def set_compontent_private_default_value(self):
+    def set_component_private_default_value(self):
+        # should setup component default parameters
         pass
     
     def init_current_process_index(self, process_index):
@@ -112,9 +118,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.init_psn_sched()
         
     def init_load_test_start_date(self):
+        # record the start time of perf test
         self.load_test_start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
     
     def init_vex_counter(self, **kwargs):
+        # initial response time metric object for both index and bitrate 
         default_counters = [0, 1000, 3000, 6000, 12000]
         generate_counter = lambda att, default_value: VEXMetricCounter(getattr(self, att) if self._has_attr(att) else default_value, name=att)
         setattr(self, 'index_counter', generate_counter('index_response_counter', default_counters))
@@ -181,6 +189,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 self.psn_fake_tracking_position_id_dict = {}
     
     def setup_test_machine_conccurent_request_number(self):
+        # for distribute perf test, calculate concurrent request number in one test machine
         if not hasattr(self, 'test_machine_hosts'):
             self.logger.fatal('test.machine.hosts must be configured.')
             exit(1)
@@ -191,6 +200,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
     
     def setup_processs_concurrent_request_number(self):
+        # for multiple process, calculate concurrent request number in one process
         current_number, remainder = divmod(self.test_machine_current_request_number, self.test_execute_process_number)
         if self.current_process_index < remainder:
             current_number += 1
@@ -198,6 +208,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.current_processs_concurrent_request_number = current_number
     
     def setup_test_contents(self):
+        # setup all the test content
         if not hasattr(self, 'test_case_content_names'):
             self.logger.fatal('Test content names must be set. for example: "test.case.content.names=vod_test_[1~100]"')
             exit(1)
@@ -207,6 +218,48 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.logger.info('Test content names are from %s to %s' % (self.test_content_name_list[0], self.test_content_name_list[-1]))
         else:
             self.logger.info('Test content name is %s' % (self.test_content_name_list[0]))
+    
+    def _use_fake(self):
+        # whether to use fake response
+        return self._has_attr('test_use_fake_manifest')
+    
+    def _get_fake_response(self, fake_response_file, fake_file_att_name='fake_response'):
+        # read fake file as http fake response 
+        r = Response()
+        response_text, status_code = ('fake response content', 200)
+        
+        if hasattr(self, fake_file_att_name):
+            response_text = getattr(self, fake_file_att_name)
+        else:
+            if os.path.exists(fake_response_file):
+                with open(fake_response_file) as f:
+                    response_text = f.read()
+                    setattr(self, fake_file_att_name, response_text)
+            else:
+                self.logger.error('not found fake file %s' % (fake_response_file))
+        return r, 201, response_text, status_code
+    
+    def _get_vex_response(self, task, tag='Index'):
+        # get vex response. If failed, retry 'test_client_request_retry_count' times
+        # return response and response time
+        response, used_time = None, 0
+        try:
+            response, used_time = self.get_response(task, self.test_client_request_timeout)
+        except Exception, e:
+            self.logger.error('Failed to do %s task. %s. %s' % (tag, task, e), exc_info=0)
+            
+            mtries = self.test_client_request_retry_count
+            retry_count = 1
+            while mtries > 1:
+                time.sleep(self.test_client_request_retry_delay)
+                try:
+                    self.logger.debug('Retry index, %s time. task:[%s]' % (retry_count, task))
+                    response, used_time = self.get_response(task, self.test_client_request_timeout)
+                    return response
+                except Exception, e:
+                    self.logger.error('Retry index failed, %s time. task:[%s]' % (retry_count, task))
+                    mtries -= 1
+        return response, used_time
     
     def send_psn(self, task, psn_tracking_position_id_dict, psn_gap_list):
         if psn_tracking_position_id_dict is None or len(psn_tracking_position_id_dict) == 0:
@@ -318,6 +371,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def _generate_task(self):
         content_name = self._get_random_content()
+        
+        if self._has_attr('test_type_options'):
+            if self.test_case_type not in self.test_type_options:
+                self.logger.fatal('Test type %s in not in %s' % (self.test_case_type, self.test_type_options))
+                exit(1)
+        
         index_url = self.index_url_format % (content_name, content_name, self.test_case_type)
         client_ip = ip_util.generate_random_ip(ip_segment_range=self.ip_segment_range)
         location = self._get_random_location()
