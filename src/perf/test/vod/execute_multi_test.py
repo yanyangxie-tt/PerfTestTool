@@ -14,7 +14,7 @@ def do_load_test(load_test_script, current_process_seq):
 if __name__ == "__main__":
     config_dict = read_configurations()
     process_number = int(common_util.get_config_value_by_key(config_dict, 'test.execute.process.number', 1))
-    load_test_script_file_name = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'vod_perf_test.py'
+    load_test_script_file_name = os.path.dirname(os.path.abspath(__file__)) + os.sep + load_test_sigle_process_script_file
     
     process_list = []
     for i in range(process_number):

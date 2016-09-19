@@ -5,13 +5,14 @@ import time
 
 from utility import time_util
 
+def get_test_result_tmp_dir(result_dir, test_case_name=None):
+    if test_case_name is not None:
+        result_dir += '-' + test_case_name
+    return result_dir
 
 def get_process_result_tmp_dir(result_dir, test_case_name=None, process_number=None, test_prefix='test-result-'):
     '''Get result dir for special test case and special process in test machine'''
-    r_dir = result_dir
-    if test_case_name is not None:
-        r_dir += '-' + test_case_name
-    
+    r_dir = get_test_result_tmp_dir(result_dir, test_case_name)
     r_dir += os.sep + test_prefix + time.strftime("%d-%H-%M-%S", time.localtime())
     if process_number is not None:
         r_dir += '-' + str(process_number)

@@ -16,9 +16,7 @@ from perf.test.model.psn import PSNEvents
 from perf.test.model.task import VEXScheduleReqeustsTask
 from perf.test.model.vex_counter import VEXMetricCounter
 from perf.test.model.vex_requests import VEXRequest
-from utility import vex_util, time_util, logger_util, ip_util, file_util, \
-    common_util
-
+from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util
 
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -38,6 +36,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def set_vex_common_default_value(self):
         self._set_attr('test_case_survival', 600)
+        self._set_attr('test_result_report_dir', '/tmp/load-test-result')
         
         # Default value of log.export.thirdparty is False, not to export thirdparty logs.
         if self._has_attr('log_export_thirdparty') and getattr(self, 'log_export_thirdparty') is True:
@@ -97,13 +96,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def init_result_dir(self):
         # To multiple process, each process has its private log， need use a flag to generate its private result dir. Now we use current_process_index
-        self.test_result_dir = vex_util.get_process_result_tmp_dir(self.test_result_temp_dir, self.test_case_name, self.current_process_index)
+        self.test_result_dir = vex_util.get_process_result_tmp_dir(self.test_result_report_dir, self.test_case_name, self.current_process_index)
         self.test_result_report_delta_dir = self.test_result_dir + self.test_result_report_delta_dir
         self.test_result_report_error_dir = self.test_result_dir + self.test_result_report_error_dir
         self.test_result_report_traced_dir = self.test_result_dir + self.test_result_report_traced_dir
 
     def init_log(self, log_file, log_level, log_name=None):
-        print log_file
         logger_util.setup_logger(log_file, name=log_name, log_level=log_level)
         self.logger = logging.getLogger(name=log_name)
     
@@ -356,10 +354,10 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.dispatch_task()
             
             while(True):
+                time.sleep(1)
                 current_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=0)
                 if time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date) >= self.test_case_survival:
                     break
-                time.sleep(1)
             
             self.logger.info('#' * 100)
             self.logger.info('Reach load test time limitation %s. Shutdown sched and flush statistics info into local file.' % (self.test_case_survival))
@@ -367,12 +365,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.dump_traced_bitrate_contents()
             self.dump_delta_error_details()
             
-            self.logger.info('Load test finished at %s' % (current_date))
             self.dispatch_task_sched.shutdown(False)
-            self.task_consumer_sched.shutdown(False)
+            self.task_consumer_sched.shutdown(True)
             self.report_sched.shutdown(False)
             if self.send_psn_message: 
                 self.psn_sched.shutdown(False)
+            self.logger.info('Load test finished at %s' % (current_date))
         except Exception, e:
             exc_type, exc_value, exc_tb = sys.exc_info() 
             traceback.print_exception(exc_type, exc_value, exc_tb)

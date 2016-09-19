@@ -1,10 +1,7 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
-import os
-import sys
 import time
-
 from requests.models import Response
 
 from init_script_env import *
@@ -72,13 +69,11 @@ class VODPerfTest(VEXPerfTestBase):
                 self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
                 self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
         except Exception, e:
-            print e
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error=True)
             self.logger.error('Failed to index request. %s' % (e), exc_info=1)
     
     # linear vod, cdvr do_bitrate, get_response之前都一样，可以提取公共的。接下来的check，linear和cdvr继续发送bitrate请求这里单独写    
     def do_bitrate(self, task):
-        # print self.bitrate_counter
         try:
             self.logger.debug('Execute bitrate: %s' % (str(task)))
             if self._has_attr('use_fake_manifest') is True:
@@ -218,7 +213,7 @@ class VODPerfTest(VEXPerfTestBase):
 
 if __name__ == '__main__':
     current_process_index = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    print 'current_process_index is %s' % (current_process_index)
+    # print 'current_process_index is %s' % (current_process_index)
     
     here = os.path.dirname(os.path.realpath(__file__))
     config_file = here + os.sep + 'config.properties'

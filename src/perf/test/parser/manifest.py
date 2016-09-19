@@ -153,9 +153,5 @@ if __name__ == '__main__':
     with open('/Users/xieyanyang/work/learning/PerfTest/src/perf/test/vod/fake/bitrate-fake-response.txt') as f:
         manifest = f.read()
     
-    v = VODManifestChecker(manifest, request_url, psn_tag=None, ad_tag='ad', asset_id_tag='vod_')
-    print v.ad_pre_number
-    print v.ad_post_number
-    print v.ad_mid_number
-    print v.ad_mid_position_list
-    print v.check(18, 900, '#EXT-X-ENDLIST', 'EXT-X-FAXS-CM', [225, 450, 675], 10, 30, 10)
+    checker = VODManifestChecker(manifest, request_url, psn_tag=None, ad_tag='ad', asset_id_tag='vod_')
+    print checker.check(18, 900, '#EXT-X-ENDLIST', 'EXT-X-FAXS-CM', [225, 450, 675], 10, 30, 10)

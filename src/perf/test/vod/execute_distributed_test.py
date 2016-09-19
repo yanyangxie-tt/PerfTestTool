@@ -16,7 +16,9 @@ from fabric.operations import run, put, local
 from fabric.tasks import execute
 
 from init_script_env import *
+from utility import fab_util
 
+here = os.path.dirname(os.path.realpath(__file__))
 project_dir, package_path = here.split('src')
 project_source_dir = project_dir + os.sep + 'src'
 
@@ -38,13 +40,13 @@ def set_fabric_env(config_dict):
 @parallel
 @roles(perf_test_machine_group)
 def stop_perf_test():
-    fab_util.fab_shutdown_service(perf_test_type)
+    fab_util.fab_shutdown_service(load_test_sigle_process_script_file)
 
 @task
 @parallel
 @roles(perf_test_machine_group)
 def rm_perf_test_log():
-    run('rm -rf %s' % (perf_test_remote_log_dir), pty=False)
+    run('rm -rf %s' % (perf_test_remote_result_dir), pty=False)
 
 @task
 @parallel
@@ -53,7 +55,8 @@ def start_perf_test():
     zip_perf_test_script()
     upload_test_script()
     with cd(perf_test_remote_script_dir + package_path):
-        run('nohup python %s > %s' % (load_test_script_file_name, perf_test_remote_script_dir + package_path + '/perf_test.log'), shell=False, pty=True, quiet=False)
+        # run('nohup python %s > %s' % (load_test_multiple_script_file_name, perf_test_remote_script_dir + package_path + '/perf_test.log'), shell=False, pty=True, quiet=False)
+        run('nohup python %s >/dev/null 2>&1' % (load_test_multiple_script_file_name), shell=False, pty=True, quiet=False)
 
 def upload_test_script():
     # create script folder in remote machine
@@ -77,7 +80,8 @@ def zip_perf_test_script():
         zip_command = 'zip -r %s perf utility' % (perf_test_script_zip_file_name)
         local(zip_command)
 
-set_fabric_env(read_configurations())
+config_dict = read_configurations()
+set_fabric_env(config_dict)
 
 if __name__ == '__main__':              
     execute(stop_perf_test)
