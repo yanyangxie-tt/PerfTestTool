@@ -10,37 +10,17 @@ from fabric.operations import run, put, local
 from fabric.tasks import execute
 
 from init_script_env import *
-from perf.test.model.configuration import Configurations
+from perf.test.model.vex_distribute import DistributeEnv
 from utility import fab_util, vex_util
 
-class DistributePerfTest(Configurations):
+class DistributePerfTest(DistributeEnv):
     def __init__(self, config_file, **kwargs):
         '''
         @param config_file: configuration file, must be a properties file
         '''
         super(DistributePerfTest, self).__init__(config_file, **kwargs)
-        self.set_fabric_env()
         self.project_dir, self.package_path = here.split('src')
         self.project_source_dir = self.project_dir + os.sep + 'src'
-    
-    def set_fabric_env(self):
-        self._set_attr('test_machine_port', '22')
-        self._set_attr('test_machine_username', 'root')
-        
-        if not hasattr(self, 'test_machine_pubkey') and not hasattr(self, 'test_virtual_machine_password'):
-            print 'pubkey and password must have one'
-            exit(1)
-        
-        if not hasattr(self, 'test_machine_hosts'):
-            print 'Test machine hosts is required'
-            exit(1)
-        elif type(self.test_machine_hosts) is str:
-            self.test_machine_hosts = [self.test_machine_hosts, ]
-        
-        if hasattr(self, 'test_machine_username'): fab_util.set_user(self.test_machine_username)
-        if hasattr(self, 'test_machine_port'): fab_util.set_port(self.test_machine_port)
-        if hasattr(self, 'test_machine_pubkey'): fab_util.set_key_file(self.test_machine_pubkey)
-        if hasattr(self, 'test_virtual_machine_password'): fab_util.set_password(self.test_virtual_machine_password)
         fab_util.set_roles(perf_test_machine_group, self.test_machine_hosts,)
     
     def rm_perf_test_log(self):
