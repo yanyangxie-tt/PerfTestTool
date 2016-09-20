@@ -86,5 +86,5 @@ set_fabric_env(config_dict)
 if __name__ == '__main__':              
     execute(stop_perf_test)
     execute(rm_perf_test_log)
-    execute(start_perf_test)
+    # execute(start_perf_test)
     

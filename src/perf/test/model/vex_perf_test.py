@@ -36,7 +36,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def init_configured_parameters_default_value(self):
         # setup default value of performance test
         self.set_vex_common_default_value()
-        self.set_compontent_private_default_value()
+        self.set_component_private_default_value()
     
     def set_vex_common_default_value(self):
         # setup default value of parameters in common for both vod,cdvr and linear 
