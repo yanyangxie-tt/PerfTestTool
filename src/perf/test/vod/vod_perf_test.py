@@ -102,8 +102,11 @@ class VODPerfTest(VEXPerfTestBase):
                 self.client_response_endlist_tag, self.client_response_drm_tag, self.client_response_ad_mid_roll_position, self.client_response_ad_pre_roll_ts_number,
                 self.client_response_ad_mid_roll_ts_number, self.client_response_ad_post_roll_ts_number,)
         if error_message is not None and error_message != '':
-            # self.logger.error('%s, Manifest:%s' % (error_message, manifest_checker.manifest))
-            self.logger.error('%s' % (error_message))
+            if self._has_attr('client_response_error_dump') is True:
+                self.logger.error('%s, Manifest:%s' % (error_message, manifest_checker.manifest))
+            else:
+                self.logger.error('%s' % (error_message))
+            
             self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, is_error_response=True)
 

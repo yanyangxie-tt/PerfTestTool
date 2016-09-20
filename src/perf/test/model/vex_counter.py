@@ -1,3 +1,6 @@
+# -*- coding=utf-8 -*-
+# author: yanyang.xie@gmail.com
+
 import copy
 from utility.counter import MetricCounter
 

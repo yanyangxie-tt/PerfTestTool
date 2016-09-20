@@ -1,3 +1,6 @@
+# -*- coding=utf-8 -*-
+# author: yanyang.xie@gmail.com
+
 from datetime import datetime
 from utility import time_util
 

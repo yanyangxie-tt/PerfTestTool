@@ -2,13 +2,15 @@
 # author: yanyang.xie@gmail.com
 
 import random
+import re
+
 
 def get_bitrate_urls(index_response, birate_number=1, use_iframe=True, use_sap=True):
     '''
     Get bitrate URL list
     @param index_response:
     @param use_iframe: parse iframe url
-    @param use_sap: parse audio url
+    @param use_sap: parse sap url
     
     @return: bitrate url list
     '''
@@ -24,15 +26,14 @@ def get_bitrate_urls(index_response, birate_number=1, use_iframe=True, use_sap=T
                 bite_url_list.append(iframe_url)
                 
         elif use_sap and line.find('#EXT-X-MEDIA') >= 0:
-            for content in line.split(','):
-                if content.find('URI=') >= 0:
-                    audio_track_url = content[content.find('URI="') + len('URI="'):-1]
-                    bite_url_list.append(audio_track_url)
-                    break
+            m = re.search('.*URI="(.*)".*', line)
+            if m:
+                audio_track_url = m.groups()[0]
+                bite_url_list.append(audio_track_url)
+                break
         elif line.find('#') == 0:
             continue
         else:
             bite_url_list.append(line.replace('\r', ''))
     random.shuffle(bite_url_list)
     return bite_url_list[0:birate_number] if len(bite_url_list) > birate_number else bite_url_list
-

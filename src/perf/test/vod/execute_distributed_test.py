@@ -3,9 +3,6 @@
 
 '''
 Distributed load test script
-@author: yanyang.xie@thistech.com
-@version: 0.3
-@since: 07/29/2014
 '''
 import string
 
@@ -86,5 +83,5 @@ set_fabric_env(config_dict)
 if __name__ == '__main__':              
     execute(stop_perf_test)
     execute(rm_perf_test_log)
-    # execute(start_perf_test)
+    execute(start_perf_test)
     

@@ -1,7 +1,8 @@
+# -*- coding=utf-8 -*-
+# author: yanyang.xie@gmail.com
+
 import requests
-
 from utility import time_util
-
 
 class VEXRequest(object):
     def  __init__(self,):
