@@ -4,34 +4,16 @@
 '''
 Distributed load test script
 '''
-import string
-
 from fabric.context_managers import cd, lcd
 from fabric.contrib.files import exists
 from fabric.decorators import task, parallel, roles
 from fabric.operations import run, put, local
 from fabric.tasks import execute
-
 from init_script_env import *
-from utility import fab_util
 
 here = os.path.dirname(os.path.realpath(__file__))
 project_dir, package_path = here.split('src')
 project_source_dir = project_dir + os.sep + 'src'
-
-def set_fabric_env(config_dict):
-    user = common_util.get_config_value_by_key(config_dict, 'test.machine.username', 'root')
-    port = common_util.get_config_value_by_key(config_dict, 'test.machine.port', '22')
-    pub_key = common_util.get_config_value_by_key(config_dict, 'test.machine.pubkey')
-    password = common_util.get_config_value_by_key(config_dict, 'test.virtual.machine.password')
-    test_machines = common_util.get_config_value_by_key(config_dict, 'test.machine.hosts')
-    
-    if pub_key is None and password is None:
-        print 'pubkey and password must have one'
-        exit(1)
-    
-    fab_util.set_roles(perf_test_machine_group, ['%s@%s:%s' % (user, host, port) for host in string.split(test_machines, ',')])   
-    fab_util.set_key_file(pub_key)
 
 @task
 @parallel
