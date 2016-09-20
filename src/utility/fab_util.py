@@ -39,6 +39,11 @@ def set_user(user):
     if user is None or user == '':
         return
     env.user = user
+
+def set_port(port):
+    if port is None or port == '':
+        return
+    env.port = port
     
 def set_password(password):
     if password is None or password == '':
