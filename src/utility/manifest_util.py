@@ -25,12 +25,13 @@ def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=
         if line == '':
             continue
         
-        elif use_iframe and line.find('EXT-X-I-FRAME-STREAM-INF') >= 0:
-            iframe_url = line[line.find('URI="') + len('URI="'):-2]
-            if use_iframe:
+        elif use_iframe is True and line.find('EXT-X-I-FRAME-STREAM-INF') >= 0:
+            m = re.search('.*URI="(.*)".*', line)
+            if m:
+                iframe_url = m.groups()[0]
                 bite_url_list.append(iframe_url)
-                
-        elif use_sap and line.find('#EXT-X-MEDIA') >= 0:
+            continue
+        elif use_sap is True and line.find('#EXT-X-MEDIA') >= 0:
             m = re.search('.*URI="(.*)".*', line)
             if m:
                 audio_track_url = m.groups()[0]
