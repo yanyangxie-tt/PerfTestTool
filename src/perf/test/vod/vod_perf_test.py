@@ -20,6 +20,8 @@ class VODPerfTest(VEXPerfTestBase):
         self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
         self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
     
+        self._set_attr('test_require_sap', False)
+    
     def do_index(self, task):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
@@ -41,7 +43,7 @@ class VODPerfTest(VEXPerfTestBase):
             self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=False)
             self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
-            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number)
+            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap)
             for i, bitrate_url in enumerate(bitrate_url_list):
                 b_task = task.clone()
                 delta_milliseconds = self.test_bitrate_serial_time * (i + 1) if self.test_bitrate_serial else self.test_bitrate_serial_time

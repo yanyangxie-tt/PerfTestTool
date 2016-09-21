@@ -17,3 +17,6 @@ perf_test_script_zip_file_name = perf_test_script_zip_file_dir + os.sep + perf_t
 load_test_multiple_script_file_name = 'execute_multi_test.py'
 load_test_sigle_process_script_file = 'vod_perf_test.py'
 load_test_script_file_name = os.path.dirname(os.path.abspath(__file__)) + os.sep + load_test_sigle_process_script_file
+
+final_test_report_file_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'reports'
+final_test_monitor_file_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep + 'system_monitors'
