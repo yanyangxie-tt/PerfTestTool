@@ -43,7 +43,8 @@ class VODPerfTest(VEXPerfTestBase):
             self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=False)
             self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
-            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap)
+            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random)
+            self.logger.info(bitrate_url_list)
             for i, bitrate_url in enumerate(bitrate_url_list):
                 b_task = task.clone()
                 delta_milliseconds = self.test_bitrate_serial_time * (i + 1) if self.test_bitrate_serial else self.test_bitrate_serial_time

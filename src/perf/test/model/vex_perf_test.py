@@ -57,6 +57,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self._set_attr('test_client_request_retry_delay', 1)
         
         self._set_attr('test_bitrate_request_number', 1)
+        self._set_attr('test_bitrate_request_random', True)
         self._set_attr('test_bitrate_serial', False)
         self._set_attr('test_bitrate_serial_time', 300)
         
