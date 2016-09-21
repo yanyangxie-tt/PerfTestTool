@@ -20,7 +20,6 @@ from perf.test.model.vex_counter import VEXMetricCounter
 from perf.test.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util
 
-
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def __init__(self, config_file, current_process_index=0, **kwargs):
         '''

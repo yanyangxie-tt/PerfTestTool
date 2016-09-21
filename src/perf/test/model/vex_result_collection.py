@@ -26,7 +26,7 @@ class ResultCollection(DistributeEnv):
         self.collected_result_before_now=collected_result_before_now
         self.perf_test_machine_group = 'perf_test_machines'
         
-        self.vex_tmp_dir = '/tmp/'
+        self.vex_tmp_dir = '/tmp'
         self.local_zip_dir = self.vex_tmp_dir + os.sep + 'vex_test_result_dir'
         
         self.setup_env()
@@ -57,7 +57,7 @@ class ResultCollection(DistributeEnv):
         local('rm -rf %s/*' %(local_host_zip_dir))
         
         with cd(self.perf_test_remote_result_dir):
-            tmp_zip_file = self.vex_tmp_dir +'tmp-vex-load-test-result.zip'
+            tmp_zip_file = self.vex_tmp_dir +os.sep + 'tmp-vex-load-test-result.zip'
             run('rm -rf %s' % (tmp_zip_file))
             
             print 'zip result file in remote test machine using command \'zip -r %s %s %s %s\'' % (tmp_zip_file, self.report_file_reg, self.traced_files_reg, self.error_files_reg)

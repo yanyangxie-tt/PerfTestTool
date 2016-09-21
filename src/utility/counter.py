@@ -25,6 +25,9 @@ class Metric():
     
     def clear(self):
         self.count = 0
+        
+    def get_metric_string(self):
+        return '%s-%s' %(self.metric_min, self.metric_max)
     
     def __repr__(self):
         return '%s-%s:%s' % (self.metric_range[0], self.metric_range[1], self.count)

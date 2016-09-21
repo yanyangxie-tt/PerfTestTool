@@ -95,8 +95,44 @@ class VEXMetricCounter(MetricCounter):
             summary += '%6s%-10s milliseconds: %s\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[1]), metric.count)
         return summary
     
-    def parser(self, summary_info):
-        pass
+    def parse(self, summary_info):
+        summary_counter_info, resposne_metric_info = summary_info.split('Response Time Distribution')
+        for line in summary_counter_info.split('\n'):
+            if line.find('Perf Test Duration') > 0:
+                self.counter_period = line.split(':')[1].replace('seconds','').strip()
+                continue
+            elif line.find('Request In Total') > 0:
+                self.total_count = int(line.split(':')[1].strip())
+                continue
+            elif line.find('Request Succeed') > 0 and line.find('Rate') < 0:
+                self.succeed_total_count = int(line.split(':')[1].strip())
+                continue
+            elif line.find('Request Failure') > 0:
+                self.error_total_count = int(line.split(':')[1].strip())
+                continue
+            elif line.find('Response Average Time') > 0:
+                self.average_response_time = int(line.split(':')[1].strip())
+                self.response_time_sum = self.average_response_time * int(self.succeed_total_count)
+                continue
+            elif line.find('Response Failure ') > 0:
+                self.response_error_total_count = int(line.split(':')[1].strip())
+                continue
+            
+        resposne_metric_dict = {}
+        for metric in resposne_metric_info.split('\n'):
+            metric =  metric.strip()
+            if metric.find(':') < 0:
+                continue
+            
+            metric_range, value =  metric.split(':')
+            metric_range = metric_range.replace('milliseconds','').strip()
+            resposne_metric_dict[metric_range] = int(value.strip())
+        
+        for metric in self.metric_list:
+            metric_string = metric.get_metric_string()
+            if resposne_metric_dict.has_key(metric_string):
+                metric.count = resposne_metric_dict.get(metric_string)
+        #print self.dump_counter_info(self.counter_period)
     
     def __repr__(self):
         return str(self.__dict__)
