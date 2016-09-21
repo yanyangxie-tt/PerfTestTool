@@ -206,6 +206,7 @@ def delete_file(file_path):
         os.remove(file_path)
             
 if __name__ == '__main__':
+    '''
     t_file = (__file__)
     print __file__
     print get_file_dir_path(t_file)
@@ -214,3 +215,9 @@ if __name__ == '__main__':
     print filter_file_list(get_matched_file_list(get_file_dir_path(t_file)), '.*file.*.py')
     # print read_file_lines(t_file)[0:3]
     # print read_file(t_file, 20)
+    '''
+    
+    file_dir = '/tmp/report-merge/remote_zip_dir'
+    file_list = get_matched_file_list(file_dir, 'load-test-report.txt')
+    print len(file_list)
+    print file_list[0]

@@ -18,7 +18,7 @@ class VODPerfTest(VEXPerfTestBase):
     
     def set_component_private_default_value(self):
         self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
-        self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05-05:00')
+        self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z')
     
         self._set_attr('test_require_sap', False)
     

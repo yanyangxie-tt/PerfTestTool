@@ -199,7 +199,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.test_machine_hosts = self.test_machine_hosts.split(',')
         test_machine_inistace_size = len(self.test_machine_hosts)
         self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
-    
+        self.logger.info('Test machine concurrent request number is %s' %(self.test_machine_current_request_number))
+        
     def setup_processs_concurrent_request_number(self):
         # for multiple process, calculate concurrent request number in one process
         current_number, remainder = divmod(self.test_machine_current_request_number, self.test_execute_process_number)
@@ -207,6 +208,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             current_number += 1
        
         self.current_processs_concurrent_request_number = current_number
+        self.logger.info('Test process concurrent request number is %s' %(self.current_processs_concurrent_request_number))
     
     def setup_test_contents(self):
         # setup all the test content

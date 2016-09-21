@@ -73,8 +73,8 @@ class DistributePerfTest(DistributeEnv):
 if __name__ == '__main__':
     distribute_test = DistributePerfTest(config_file, golden_config_file=golden_config_file)
     task_name = sys.argv[1] if len(sys.argv) > 1 else 'restart_perf_test'
-    distribute_test.execute_task(task_name)
+    #distribute_test.execute_task(task_name)
     
-    #distribute_test.execute_task('stop_perf_test')
-    #distribute_test.execute_task('rm_perf_test_log')
-    #distribute_test.execute_task('start_perf_test')
+    distribute_test.execute_task('stop_perf_test')
+    distribute_test.execute_task('rm_perf_test_log')
+    distribute_test.execute_task('start_perf_test')
