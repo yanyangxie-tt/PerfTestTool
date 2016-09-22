@@ -53,14 +53,14 @@ class VODResultAnalyzer(ResultCollection):
         if len(counter_list) == 1:
             return counter_list[0]
         
-        
         self.total_count = 0
         self.succeed_total_count = 0
         self.error_total_count = 0
         self.response_time_sum = 0
         self.response_error_total_count = 0
         
-        merged_key_list = ['total_count','succeed_total_count','error_total_count','response_time_sum', 'response_error_total_count', 'metric_list']
+        merged_key_list = ['total_count','succeed_total_count','error_total_count','response_time_sum', 
+                           'response_error_total_count', 'metric_list']
         final_report_counter = counter_list[0]
         for counter in counter_list[1:]:
             for key, value in counter.__dict__.items():

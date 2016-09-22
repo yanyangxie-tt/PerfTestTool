@@ -27,7 +27,8 @@ class VEXMetricCounter(MetricCounter):
         self.delta_response_error_total_count = 0
     
     def set_vex_counter_name(self):
-        self.test_duration_tag= 'Perf Test Duration'
+        self.test_duration_tag= 'Test Duration (second)'
+        self.test_concurrent_number = 'Request concurrent'
         self.total_request_tag = 'Request In Total'
         self.succeed_request_tag = 'Request Succeed'
         self.succeed_rate_tag = 'Request Succeed Rate'
@@ -89,7 +90,7 @@ class VEXMetricCounter(MetricCounter):
     def get_delta_summary(self):
         return [self.delta_total_count, self.delta_succeed_total_count, self.delta_error_total_count, self.delta_response_sum, self.delta_response_error_total_count, self.delta_metric_list]
     
-    def dump_counter_info(self, counter_period, delta=False, tag='Response summary',):
+    def dump_counter_info(self, counter_period, delta=False, tag='Response summary', is_vod=True):
         total_count, succeed_total_count, error_total_count, response_time_sum, response_error_count, metric_list = self.get_delta_summary() if delta else self.get_summary()
         
         if total_count == 0:
@@ -97,24 +98,28 @@ class VEXMetricCounter(MetricCounter):
         
         summary = ''
         summary += '%-24s\n' % (tag)
-        summary += '%2s%-22s: %-4s seconds\n' % ('', self.test_duration_tag, counter_period)
+        summary += '%2s%-22s: %-4s\n' % ('', self.test_duration_tag, counter_period)
+        if is_vod is True: 
+            summary += '%2s%-22s: %-4s\n' % ('', self.test_concurrent_number, total_count/int(counter_period))
         summary += '%2s%-22s: %s\n' % ('', self.total_request_tag, total_count)
         summary += '%2s%-22s: %s\n' % ('', self.succeed_request_tag, succeed_total_count)
         summary += '%2s%-22s: %s\n' % ('', self.failed_request_tag, error_total_count)
         summary += '%2s%-22s: %.2f%%\n' % ('', self.succeed_rate_tag, 100 * (float(succeed_total_count) / total_count))
         summary += '%2s%-22s: %s\n' % ('', self.average_response_tag, response_time_sum / succeed_total_count if succeed_total_count != 0 else 0)
-        summary += '%2s%-22s: %s\n' % ('', self.failed_response_tag, response_error_count)
+        
+        if is_vod is True:
+            summary += '%2s%-22s: %s\n' % ('', self.failed_response_tag, response_error_count)
         summary += '%2s%-22s\n' % ('', self.response_time_distribution)
         
         for metric in metric_list:
-            summary += '%6s%-10s milliseconds: %s\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[1]), metric.count)
+            summary += '%6s%-10s millisecond: %s\n' % ('', str(metric.metric_range[0]) + metric.metric_sep + str(metric.metric_range[1]), metric.count)
         return summary
     
     def parse(self, summary_info):
         summary_counter_info, resposne_metric_info = summary_info.split(self.response_time_distribution)
         for line in summary_counter_info.split('\n'):
             if line.find(self.test_duration_tag) > 0:
-                self.counter_period = line.split(':')[1].replace('seconds','').strip()
+                self.counter_period = line.split(':')[1].strip()
                 continue
             elif line.find(self.total_request_tag) > 0:
                 self.total_count = int(line.split(':')[1].strip())

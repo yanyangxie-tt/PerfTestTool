@@ -11,6 +11,7 @@ class Metric():
         if type(metric_range) not in [list, tuple] or len(metric_range) != 2:
             raise Exception('Metric range must be like [1, 200], please check')
         
+        self.metric_sep = '-'
         self.metric_range = metric_range
         self.metric_min, self.metric_max = metric_range
         self.count = 0
@@ -27,10 +28,10 @@ class Metric():
         self.count = 0
         
     def get_metric_string(self):
-        return '%s-%s' %(self.metric_min, self.metric_max)
+        return '%s%s%s' %(self.metric_min, self.metric_sep, self.metric_max)
     
     def __repr__(self):
-        return '%s-%s:%s' % (self.metric_range[0], self.metric_range[1], self.count)
+        return '%s%s%s:%s' % (self.metric_range[0], self.metric_sep, self.metric_range[1], self.count)
 
 class MetricCounter(object):
     '''MetricCounter is to count the total number which is meeting special metric range.'''

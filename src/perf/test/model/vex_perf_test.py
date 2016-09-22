@@ -80,6 +80,16 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.ip_segment_range = vex_util.get_test_client_ip_latest_segment_range(self.test_client_vip_latest_segment_range)
         else:
             self.ip_segment_range = [i for i in range(0, 256)]
+        
+        if hasattr(self, 'client_response_check_percent'):
+            self.client_response_check_percent = float(self.client_response_check_percent)
+            if self.client_response_check_percent <= 0 or self.client_response_check_percent > 1:
+                self.client_response_check_when_running = False
+                self.check_percent_factor = 1000000
+            else:    
+                self.check_percent_factor = int(1/self.client_response_check_percent)
+        else:
+            self.check_percent_factor = 1
     
     def set_component_private_default_value(self):
         # should setup component default parameters
@@ -201,7 +211,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.test_machine_hosts = self.test_machine_hosts.split(',')
         test_machine_inistace_size = len(self.test_machine_hosts)
         self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
-        self.logger.info('Test machine concurrent request number is %s' %(self.test_machine_current_request_number))
+        self.logger.info('Test machine client request number is %s. (VOD is concurrent session number. Linear/Cdvr is total session number)' %(self.test_machine_current_request_number))
         
     def setup_processs_concurrent_request_number(self):
         # for multiple process, calculate concurrent request number in one process
@@ -210,7 +220,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             current_number += 1
        
         self.current_processs_concurrent_request_number = current_number
-        self.logger.info('Test process concurrent request number is %s' %(self.current_processs_concurrent_request_number))
+        self.logger.info('Test process client request number is %s' %(self.current_processs_concurrent_request_number))
     
     def setup_test_contents(self):
         # setup all the test content
@@ -260,7 +270,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 try:
                     self.logger.debug('Retry index, %s time. task:[%s]' % (retry_count, task))
                     response, used_time = self.get_response(task, self.test_client_request_timeout)
-                    return response
+                    return response, used_time
                 except Exception, e:
                     self.logger.error('Retry index failed, %s time. task:[%s]' % (retry_count, task))
                     mtries -= 1

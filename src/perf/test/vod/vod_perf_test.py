@@ -77,13 +77,13 @@ class VODPerfTest(VEXPerfTestBase):
             else:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
             
-            if not self._has_attr('send_psn_message') and not self._has_attr('client_response_check_when_running'):
+            if self._has_attr('send_psn_message') is False and self._has_attr('client_response_check_when_running') is False:
                 return
             
             self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
             checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_')
             
-            if self._has_attr('client_response_check_when_running'):
+            if self._has_attr('client_response_check_when_running') is True:
                 self.check_response(task, checker)
             
             if self._has_attr('send_psn_message') is True:
@@ -100,6 +100,11 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
         
     def check_response(self, task, manifest_checker):
+        with self.bitrate_lock:
+            if self.bitrate_counter.total_count % self.check_percent_factor != 0:
+                return
+        
+        self.logger.debug('Check bitrate client response. task: %s' %(task))
         error_message = manifest_checker.check(self.client_response_media_sequence, self.client_response_content_segment_number,
                 self.client_response_endlist_tag, self.client_response_drm_tag, self.client_response_ad_mid_roll_position, self.client_response_ad_pre_roll_ts_number,
                 self.client_response_ad_mid_roll_ts_number, self.client_response_ad_post_roll_ts_number,)
