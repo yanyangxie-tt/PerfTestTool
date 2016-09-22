@@ -1,6 +1,6 @@
 #!/bin/sh
 
-perf_test_task="stop_perf_test"
+perf_test_task="stop"
 
 perf_test_script_dir=${perf_test_script_dir:-`(cd "$(dirname "$0")"; pwd)`}
 perf_test_script_dir=${perf_test_script_dir:-$1}

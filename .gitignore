@@ -91,3 +91,4 @@ ENV/
 # report file
 reports/
 tmp/
+config-golden.properties
