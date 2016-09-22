@@ -22,7 +22,7 @@ class VODResultAnalyzer(ResultCollection):
         default_counters = [0, 1000, 3000, 6000, 12000]
         generate_counter = lambda att, default_value: getattr(self, att) if self._has_attr(att) else default_value
         setattr(self, 'index_counter', generate_counter('index_response_counter', default_counters))
-        setattr(self, 'bitrate_counter', generate_counter('bitrate_response_counter', default_counters))   
+        setattr(self, 'bitrate_counter', generate_counter('bitrate_response_counter', default_counters))
         
     '''
     Export a final test report to local file
@@ -32,16 +32,41 @@ class VODResultAnalyzer(ResultCollection):
     '''
     def export_summarized_report_data(self):
         # 遍历local_zip_dir, 找到所report file的文件全路径
-        file_list = file_util.get_matched_file_list(self.local_zip_dir, self.test_result_report_file)
-        print file_list
+        summarized_report_file_list = file_util.get_matched_file_list(self.local_zip_dir, self.test_result_report_file)
+        counters = map(self.parse_one_summarized_report_file, summarized_report_file_list)
+        index_counter_list = [counter[0] for counter in counters]
+        bitrate_counter_list = [counter[1] for counter in counters]
+
+        final_index_report_counter = self.merge_vex_count_list(index_counter_list)
+        final_bitrate_report_counter = self.merge_vex_count_list(bitrate_counter_list)
         
-        # 使用map的方式，对全部的找到的文件进行数据归集。在VEXMetricCounter里保存数据
-        summarized_report_file = '/tmp/vex_test_result_dir/54-169-146-58/test-result-0/load-test-report.txt'
-        self.parse_one_summarized_report_file(summarized_report_file)
+        report_content = final_index_report_counter.dump_counter_info(final_index_report_counter.counter_period, tag='Index Response Summary',)
+        report_content += '\n' + final_bitrate_report_counter.dump_counter_info(final_bitrate_report_counter.counter_period, tag='Bitrate Response Summary',)
+        print report_content
+        print 'Export summarized report to %s' %(self.report_file_dir + os.sep + self.summary_file_name)
+        file_util.write_file(self.report_file_dir, self.summary_file_name, report_content, is_delete=True)
+    
+    
+    def merge_vex_count_list(self, counter_list, ):
+        if counter_list is None or len(counter_list) == 0:
+            return None
         
-        # 对map的结果进行合并
+        if len(counter_list) == 1:
+            return counter_list[0]
         
-        # 输出测试结果
+        final_report_counter = counter_list[0]
+        for counter in counter_list[1:]:
+            for key, value in counter.__dict__.items():
+                if key in ['name', 'counter_period', 'counter_metric_dict', 'max', 'average_response_time'] or key.startswith('delta_'):
+                    continue
+                
+                if key == 'metric_list':
+                    for i, metric in enumerate(value):
+                        #final_report_counter.metric_list[i] is a Metric instance
+                        final_report_counter.metric_list[i].count += metric.count
+                else:
+                    setattr(final_report_counter, key, getattr(final_report_counter, key) + value)
+        return final_report_counter
     
     def parse_one_summarized_report_file(self, summarized_report_file):
         with open(summarized_report_file) as f:
@@ -50,12 +75,11 @@ class VODResultAnalyzer(ResultCollection):
         index_summarized_content, bitrate_summarized_content = summarized_content.split(self.index_bitrate_report_sep)  
         index_counter = VEXMetricCounter(self.index_counter)
         index_counter.parse(index_summarized_content)
-        print index_counter.dump_counter_info(index_counter.counter_period)
         
+        bit_rate_counter = VEXMetricCounter(self.bitrate_counter)
+        bit_rate_counter.parse(bitrate_summarized_content)
+        return [index_counter, bit_rate_counter]
     
-    def summary_data_parser(self, summary_file):
-        index_metric = VEXMetricCounter()
-        bitrate_metric = VEXMetricCounter()
     
     def analysis(self):
         #self.collect()
