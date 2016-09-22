@@ -20,6 +20,7 @@ class MultipleProcessTest(Configurations):
     def run(self):
         process_list = []
         for i in range(self.process_number):
+            print self.process_number, i
             p = Process(target=self.do_load_test, args=(load_test_script_file_name, i,))
             process_list.append(p)
     
