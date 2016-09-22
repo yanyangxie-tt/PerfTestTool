@@ -33,6 +33,7 @@ class DistributePerfTest(DistributeEnv):
         fab_util.fab_shutdown_service(load_test_sigle_process_script_file)
     
     def start_perf_test(self):
+        self.rm_perf_test_log()
         self.zip_perf_test_script()
         self.upload_test_script()
         
@@ -60,7 +61,7 @@ class DistributePerfTest(DistributeEnv):
         
         with cd(perf_test_remote_script_dir):
             run('unzip -o %s -d %s' % (perf_test_script_zip_name, perf_test_remote_script_dir))
-            run('rm -rf %s/%s' % (perf_test_remote_script_dir, perf_test_script_zip_name))
+            run('rm -rf %s/%s' % (perf_test_remote_script_dir, perf_test_script_zip_name), warn_only=True)
     
     def zip_perf_test_script(self):
         with lcd(self.project_source_dir):
@@ -72,9 +73,9 @@ class DistributePerfTest(DistributeEnv):
 
 if __name__ == '__main__':
     distribute_test = DistributePerfTest(config_file, golden_config_file=golden_config_file)
-    task_name = sys.argv[1] if len(sys.argv) > 1 else 'restart_perf_test'
-    #distribute_test.execute_task(task_name)
+    task_name = sys.argv[1] if len(sys.argv) > 1 else 'stop_perf_test'
+    distribute_test.execute_task(task_name)
     
-    distribute_test.execute_task('stop_perf_test')
-    distribute_test.execute_task('rm_perf_test_log')
-    distribute_test.execute_task('start_perf_test')
+    #distribute_test.execute_task('stop_perf_test')
+    #distribute_test.execute_task('rm_perf_test_log')
+    #distribute_test.execute_task('start_perf_test')
