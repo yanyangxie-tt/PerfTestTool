@@ -50,7 +50,7 @@ class MetricCounter(object):
         '''Generate metric list by counter list'''
         if type(counter_list) not in [list, tuple]:
             raise Exception('counter list must be a list or tuple')
-
+        
         for n in counter_list:
             if type(n) is not int or n < 0:
                 raise Exception('number in counter list must be a integer value and >=0')

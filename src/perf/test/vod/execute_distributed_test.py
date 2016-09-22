@@ -77,4 +77,4 @@ if __name__ == '__main__':
     
     distribute_test.execute_task('stop_perf_test')
     distribute_test.execute_task('rm_perf_test_log')
-    #distribute_test.execute_task('start_perf_test')
+    distribute_test.execute_task('start_perf_test')

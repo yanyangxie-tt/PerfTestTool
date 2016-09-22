@@ -73,6 +73,9 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self._set_attr('task_apschdule_queue_max', 100000, False)
         self._set_attr('task_apschdule_tqueue_misfire_time', 300, False)
         
+        self._set_attr('index_summary_tag', 'Index response summary', False)
+        self._set_attr('bitrate_summary_tag', 'Bitrate response summary', False)
+        
         if hasattr(self, 'test_client_vip_latest_segment_range'):
             self.ip_segment_range = vex_util.get_test_client_ip_latest_segment_range(self.test_client_vip_latest_segment_range)
         else:
@@ -287,16 +290,16 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def dump_summary_statistical_data(self):
         cost_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
-        index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag='Index response summary')
-        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag='Bitrate response summary')
+        index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag=self.index_summary_tag)
+        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag=self.bitrate_summary_tag)
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
         self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_report_file, time_util.get_local_now()))
         # self.logger.info(statistical_data)
         file_util.write_file(self.test_result_dir, self.test_result_report_file, statistical_data, mode='a', is_delete=True)
     
     def dump_delta_statistical_data(self):
-        index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag='Index response summary')
-        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag='Bitrate response summary')
+        index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.index_summary_tag)
+        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.bitrate_summary_tag)
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
         
         self.index_counter.clear_delta_metric()

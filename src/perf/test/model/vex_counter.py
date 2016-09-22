@@ -2,13 +2,18 @@
 # author: yanyang.xie@gmail.com
 
 import copy
+
 from utility.counter import MetricCounter
+
 
 class VEXMetricCounter(MetricCounter):
     def __init__(self, counter_list, name='', limitless=12000):
         super(VEXMetricCounter, self).__init__(counter_list, name, limitless)
         self.delta_metric_list = copy.deepcopy(self.metric_list)
-        
+        self.init_counter()
+        self.set_vex_counter_name()
+    
+    def init_counter(self):
         self.total_count = 0
         self.succeed_total_count = 0
         self.error_total_count = 0
@@ -20,6 +25,16 @@ class VEXMetricCounter(MetricCounter):
         self.delta_error_total_count = 0
         self.delta_response_sum = 0
         self.delta_response_error_total_count = 0
+    
+    def set_vex_counter_name(self):
+        self.test_duration_tag= 'Perf Test Duration'
+        self.total_request_tag = 'Request In Total'
+        self.succeed_request_tag = 'Request Succeed'
+        self.succeed_rate_tag = 'Request Succeed Rate'
+        self.failed_request_tag = 'Request Failure'
+        self.average_response_tag = 'Response Average Time'
+        self.failed_response_tag = 'Response Failure'
+        self.response_time_distribution = 'Response Time Distribution'
     
     def increment_error(self):
         self.error_total_count += 1
@@ -82,39 +97,39 @@ class VEXMetricCounter(MetricCounter):
         
         summary = ''
         summary += '%-24s\n' % (tag)
-        summary += '%2s%-22s: %-4s seconds\n' % ('', 'Perf Test Duration', counter_period)
-        summary += '%2s%-22s: %s\n' % ('', 'Request In Total', total_count)
-        summary += '%2s%-22s: %s\n' % ('', 'Request Succeed', succeed_total_count)
-        summary += '%2s%-22s: %s\n' % ('', 'Request Failure', error_total_count)
-        summary += '%2s%-22s: %.2f%%\n' % ('', 'Request Succeed Rate', 100 * (float(succeed_total_count) / total_count))
-        summary += '%2s%-22s: %s\n' % ('', 'Response Average Time', response_time_sum / succeed_total_count if succeed_total_count != 0 else 0)
-        summary += '%2s%-22s: %s\n' % ('', 'Response Failure', response_error_count)
-        summary += '%2s%-22s\n' % ('', 'Response Time Distribution')
+        summary += '%2s%-22s: %-4s seconds\n' % ('', self.test_duration_tag, counter_period)
+        summary += '%2s%-22s: %s\n' % ('', self.total_request_tag, total_count)
+        summary += '%2s%-22s: %s\n' % ('', self.succeed_request_tag, succeed_total_count)
+        summary += '%2s%-22s: %s\n' % ('', self.failed_request_tag, error_total_count)
+        summary += '%2s%-22s: %.2f%%\n' % ('', self.succeed_rate_tag, 100 * (float(succeed_total_count) / total_count))
+        summary += '%2s%-22s: %s\n' % ('', self.average_response_tag, response_time_sum / succeed_total_count if succeed_total_count != 0 else 0)
+        summary += '%2s%-22s: %s\n' % ('', self.failed_response_tag, response_error_count)
+        summary += '%2s%-22s\n' % ('', self.response_time_distribution)
         
         for metric in metric_list:
             summary += '%6s%-10s milliseconds: %s\n' % ('', str(metric.metric_range[0]) + '-' + str(metric.metric_range[1]), metric.count)
         return summary
     
     def parse(self, summary_info):
-        summary_counter_info, resposne_metric_info = summary_info.split('Response Time Distribution')
+        summary_counter_info, resposne_metric_info = summary_info.split(self.response_time_distribution)
         for line in summary_counter_info.split('\n'):
-            if line.find('Perf Test Duration') > 0:
+            if line.find(self.test_duration_tag) > 0:
                 self.counter_period = line.split(':')[1].replace('seconds','').strip()
                 continue
-            elif line.find('Request In Total') > 0:
+            elif line.find(self.total_request_tag) > 0:
                 self.total_count = int(line.split(':')[1].strip())
                 continue
-            elif line.find('Request Succeed') > 0 and line.find('Rate') < 0:
+            elif line.find(self.succeed_request_tag) > 0 and line.find(self.succeed_rate_tag) < 0:
                 self.succeed_total_count = int(line.split(':')[1].strip())
                 continue
-            elif line.find('Request Failure') > 0:
+            elif line.find(self.failed_request_tag) > 0:
                 self.error_total_count = int(line.split(':')[1].strip())
                 continue
-            elif line.find('Response Average Time') > 0:
+            elif line.find(self.average_response_tag) > 0:
                 self.average_response_time = int(line.split(':')[1].strip())
                 self.response_time_sum = self.average_response_time * int(self.succeed_total_count)
                 continue
-            elif line.find('Response Failure ') > 0:
+            elif line.find(self.failed_response_tag) > 0:
                 self.response_error_total_count = int(line.split(':')[1].strip())
                 continue
             
@@ -146,4 +161,12 @@ if __name__ == '__main__':
     c.increment_error()
     c.increment_error_response()
     infos = c.dump_delta_metric()
-    print c.dump_counter_info(10)
+    
+    
+    content = c.dump_counter_info(10)
+    print content
+    
+    c.parse(content)
+    print c
+    
+    print VEXMetricCounter.get_vex_counter_name()
