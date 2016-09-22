@@ -60,11 +60,12 @@ class ResultCollection(DistributeEnv):
             tmp_zip_file = self.vex_tmp_dir +os.sep + 'tmp-vex-load-test-result.zip'
             run('rm -rf %s' % (tmp_zip_file))
             
-            print 'zip result file in remote test machine using command \'zip -r %s %s %s %s\'' % (tmp_zip_file, self.report_file_reg, self.traced_files_reg, self.error_files_reg)
+            #print 'zip result file in remote test machine using command \'zip -r %s %s %s %s\'' % (tmp_zip_file, self.report_file_reg, self.traced_files_reg, self.error_files_reg)
+            print 'Start to zip expected file in remote, please wait...'
             if self.collect_traced_data is True:
-                run('zip -r %s %s %s %s' % (tmp_zip_file, self.report_file_reg, self.traced_files_reg, self.error_files_reg))
+                run('zip -r %s %s %s %s' % (tmp_zip_file, self.report_file_reg, self.traced_files_reg, self.error_files_reg), quiet=True)
             else:
-                run('zip -r %s %s' % (tmp_zip_file, self.report_file_reg))
+                run('zip -r %s %s %s' % (tmp_zip_file, self.report_file_reg, self.error_files_reg), quiet=True)
             
             print 'Start to download results info from remote %s to local folder %s' % (tmp_zip_file, local_host_zip_dir)
             get(tmp_zip_file, local_host_zip_dir)

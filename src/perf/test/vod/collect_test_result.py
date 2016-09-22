@@ -45,7 +45,6 @@ class VODResultAnalyzer(ResultCollection):
         print 'Export summarized report to %s' %(self.report_file_dir + os.sep + self.summary_file_name)
         file_util.write_file(self.report_file_dir, self.summary_file_name, report_content, is_delete=True)
     
-    
     def merge_vex_count_list(self, counter_list, ):
         if counter_list is None or len(counter_list) == 0:
             return None

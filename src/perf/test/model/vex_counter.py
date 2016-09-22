@@ -36,6 +36,8 @@ class VEXMetricCounter(MetricCounter):
         self.average_response_tag = 'Response Average Time'
         self.failed_response_tag = 'Response Failure'
         self.response_time_distribution = 'Response Time Distribution'
+        
+        self.millisecond = 'millisecond'
     
     def increment_error(self):
         self.error_total_count += 1
@@ -112,7 +114,7 @@ class VEXMetricCounter(MetricCounter):
         summary += '%2s%-22s\n' % ('', self.response_time_distribution)
         
         for metric in metric_list:
-            summary += '%6s%-10s millisecond: %s\n' % ('', str(metric.metric_range[0]) + metric.metric_sep + str(metric.metric_range[1]), metric.count)
+            summary += '%6s%-10s %s: %s\n' % ('', str(metric.metric_range[0]) + metric.metric_sep + str(metric.metric_range[1]),self.millisecond, metric.count)
         return summary
     
     def parse(self, summary_info):
@@ -145,7 +147,7 @@ class VEXMetricCounter(MetricCounter):
                 continue
             
             metric_range, value =  metric.split(':')
-            metric_range = metric_range.replace('milliseconds','').strip()
+            metric_range = metric_range.replace(self.millisecond,'').strip()
             resposne_metric_dict[metric_range] = int(value.strip())
         
         for metric in self.metric_list:
