@@ -56,7 +56,6 @@ class DistributePerfTest(DistributeEnv):
         
         with cd(perf_test_remote_script_dir):
             run('unzip -o %s -d %s' % (perf_test_script_zip_name, perf_test_remote_script_dir), quiet=True)
-            #run('rm -rf %s/%s' % (perf_test_remote_script_dir, perf_test_script_zip_name), warn_only=True)
     
     def zip_perf_test_script(self):
         with lcd(self.project_source_dir):

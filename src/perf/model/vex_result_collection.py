@@ -53,8 +53,8 @@ class ResultCollection(DistributeEnv):
         print 'Start to download files from remote'
         tmp_zip_file_name = 'tmp-vex-load-test-result.zip'
         local_host_zip_dir = self.local_zip_dir + os.sep + string.replace(env.host, '.', '-')
-        local('mkdir -p %s' % (local_host_zip_dir))
         local('rm -rf %s/*' %(local_host_zip_dir))
+        local('mkdir -p %s' % (local_host_zip_dir))
         
         with cd(self.perf_test_remote_result_dir):
             tmp_zip_file = self.vex_tmp_dir +os.sep + 'tmp-vex-load-test-result.zip'
@@ -81,5 +81,6 @@ class ResultCollection(DistributeEnv):
         return string.join(files_reg_list, ' ')
     
     def collect(self):
+        local('rm -rf %s/*' %(self.local_zip_dir))
         with settings(parallel=True, roles=[self.perf_test_machine_group, ]):
             execute(self.collect_vod_test_result_from_remote)
