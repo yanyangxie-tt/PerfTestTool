@@ -99,7 +99,7 @@ class ResultAnalyzer(ResultCollection):
         return [index_counter, bit_rate_counter]
     
     def analysis(self):
-        #self.collect()
+        self.collect()
         self.export_summarized_report_data()
         self.export_error_data()
         if self.collect_traced_data is True:
