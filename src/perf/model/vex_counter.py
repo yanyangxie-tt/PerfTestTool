@@ -3,8 +3,7 @@
 
 import copy
 
-from utility.counter import MetricCounter
-
+from perf.model.counter import MetricCounter
 
 class VEXMetricCounter(MetricCounter):
     def __init__(self, counter_list, name='', limitless=12000):

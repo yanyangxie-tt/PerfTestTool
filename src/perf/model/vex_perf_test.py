@@ -13,11 +13,11 @@ import traceback
 from apscheduler.scheduler import Scheduler
 from requests.models import Response
 
-from perf.test.model.configuration import Configurations
-from perf.test.model.psn import PSNEvents
-from perf.test.model.task import VEXScheduleReqeustsTask
-from perf.test.model.vex_counter import VEXMetricCounter
-from perf.test.model.vex_requests import VEXRequest
+from perf.model.configuration import Configurations
+from perf.model.psn import PSNEvents
+from perf.model.task import VEXScheduleReqeustsTask
+from perf.model.vex_counter import VEXMetricCounter
+from perf.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util
 
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):

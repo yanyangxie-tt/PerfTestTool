@@ -4,8 +4,8 @@
 import datetime
 
 from init_script_env import *
-from perf.test.model.vex_counter import VEXMetricCounter
-from perf.test.model.vex_result_collection import ResultCollection
+from perf.model.vex_counter import VEXMetricCounter
+from perf.model.vex_result_collection import ResultCollection
 from utility import file_util
 
 class VODResultAnalyzer(ResultCollection):

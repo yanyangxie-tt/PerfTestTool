@@ -9,7 +9,7 @@ from fabric.operations import local, run, get
 from fabric.state import env
 from fabric.tasks import execute
 
-from perf.test.model.vex_distribute import DistributeEnv
+from perf.model.vex_distribute import DistributeEnv
 from utility import fab_util, vex_util, time_util
 
 class ResultCollection(DistributeEnv):

@@ -1,4 +1,4 @@
-from perf.test.model.configuration import Configurations
+from perf.model.configuration import Configurations
 from utility import fab_util
 
 

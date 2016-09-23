@@ -4,8 +4,8 @@
 import time
 
 from init_script_env import *
-from perf.test.model.vex_perf_test import VEXPerfTestBase
-from perf.test.parser.manifest import VODManifestChecker
+from perf.model.vex_perf_test import VEXPerfTestBase
+from perf.parser.manifest import VODManifestChecker
 from utility import time_util, manifest_util
 
 class VODPerfTest(VEXPerfTestBase):

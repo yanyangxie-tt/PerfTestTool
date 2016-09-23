@@ -4,7 +4,7 @@
 import sys
 import threading
 
-from perf.test.model.vex_requests import VEXRequest
+from perf.model.vex_requests import VEXRequest
 from utility import time_util
 
 class PSNEvents(object):

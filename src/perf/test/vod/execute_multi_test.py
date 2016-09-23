@@ -4,7 +4,7 @@
 from multiprocessing import Process
 
 from init_script_env import *
-from perf.test.model.configuration import Configurations
+from perf.model.configuration import Configurations
 
 class MultipleProcessTest(Configurations):
     def __init__(self, config_file, **kwargs):

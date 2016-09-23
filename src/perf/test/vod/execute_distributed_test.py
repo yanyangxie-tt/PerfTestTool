@@ -10,9 +10,8 @@ from fabric.operations import run, put, local
 from fabric.tasks import execute
 
 from init_script_env import *
-from perf.test.model.vex_distribute import DistributeEnv
+from perf.model.vex_distribute import DistributeEnv
 from utility import fab_util, vex_util
-
 
 class DistributePerfTest(DistributeEnv):
     def __init__(self, config_file, **kwargs):
@@ -68,7 +67,7 @@ class DistributePerfTest(DistributeEnv):
 
 if __name__ == '__main__':
     distribute_test = DistributePerfTest(config_file, golden_config_file=golden_config_file)
-    task_name = sys.argv[1] if len(sys.argv) > 1 else 'stop'
+    task_name = sys.argv[1] if len(sys.argv) > 1 else 'restart'
     
     if task_name == 'stop':
         distribute_test.execute_task('stop_perf_test')
