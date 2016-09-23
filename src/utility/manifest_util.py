@@ -4,7 +4,6 @@
 import random
 import re
 
-
 def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=True, sap_required=False, random_bitrate=True):
     '''
     Get bitrate URL list
@@ -43,7 +42,6 @@ def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=
             bite_url_list.append(line.replace('\r', ''))
     
     if sap_required and len(sap_url_list) == 0:
-        print 'require sap, but not found sap'
         return []
     
     if sap_required is True:

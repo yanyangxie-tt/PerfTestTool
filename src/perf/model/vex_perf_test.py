@@ -18,7 +18,8 @@ from perf.model.psn import PSNEvents
 from perf.model.task import VEXScheduleReqeustsTask
 from perf.model.vex_counter import VEXMetricCounter
 from perf.model.vex_requests import VEXRequest
-from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util
+from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util, manifest_util
+
 
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -234,6 +235,68 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         else:
             self.logger.info('Test content name is %s' % (self.test_content_name_list[0]))
     
+    def do_index(self, task, ):
+        try:
+            self.logger.debug('Execute index: %s' % (str(task)))
+            if self._use_fake() is True:
+                index_fake_file = self.fake_file_dir + '/fake/index-fake-response.txt'
+                response, used_time, response_text, status_code = self._get_fake_response(index_fake_file, fake_file_att_name='index_fake_response')
+            else:
+                response, used_time = self._get_vex_response(task, tag='Index')
+                response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
+                
+            if response is None:
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
+                return
+            elif status_code != 200:
+                self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
+                return
+            
+            self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=False)
+            self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
+            
+            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random)
+            for i, bitrate_url in enumerate(bitrate_url_list):
+                b_task = task.clone()
+                delta_milliseconds = self.test_bitrate_serial_time * (i + 1) if self.test_bitrate_serial else self.test_bitrate_serial_time
+                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=delta_milliseconds)
+                b_task.set_bitrate_url(bitrate_url)
+                b_task.set_start_date(start_date)
+                self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
+                self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+        except Exception, e:
+            self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
+            self.logger.error('Failed to index request. %s' % (e), exc_info=1)
+    
+    def do_bitrate(self, task):
+        try:
+            self.logger.debug('Execute bitrate: %s' % (str(task)))
+            if self._use_fake() is True:
+                bitrate_fake_file = self.fake_file_dir + '/fake/bitrate-fake-response.txt'
+                response, used_time, response_text, status_code = self._get_fake_response(bitrate_fake_file, fake_file_att_name='bitrate_fake_response')
+            else:
+                response, used_time = self._get_vex_response(task, tag='Bitrate')
+                response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
+                
+            if response is None:
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
+                return
+            elif status_code != 200:
+                self.logger.warn('Failed to bitrate request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
+                return
+            else:
+                self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
+            
+            self.do_bitrate_other_step(task, response_text)
+        except Exception, e:
+            self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error_request=True)
+            self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
+    
+    def do_bitrate_other_step(self, task, response_text):
+        pass
+    
     def _use_fake(self):
         # whether to use fake response
         return self._has_attr('test_use_fake_manifest')
@@ -364,6 +427,38 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         pass
     
     def dispatch_task(self):
+        self.logger.debug('Start to dispatch task')
+        if self.current_processs_concurrent_request_number == 0:
+            self.logger.warn('Current request number for this process(%s) is 0, exit.' % (self.current_process_index))
+            exit(0)
+        
+        # warm up
+        if hasattr(self, 'test_case_warmup_period_minute') and self.test_case_warmup_period_minute > 0:
+            self.logger.info('Start to do performance with warm-up process')
+            warm_up_list = self._generate_warm_up_list()
+            # generate warm-up rate
+            if len(warm_up_list) > 0:
+                # Fetch tasks by the number of warm_up_list, and then add it to task consumer(task sched)
+                for task_number in warm_up_list:
+                    self.logger.debug('Warm-up stage: Put %s task into task queue' % (task_number))
+                    index = 0
+                    while index < task_number:
+                        task = self.task_queue.get(True, timeout=10)
+                        start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=3)
+                        task.set_start_date(start_date)
+                        self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
+                        index += 1
+                    time.sleep(self.warm_up_time_gap)
+                    
+                    running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
+                    if running_time!= 0 and running_time % 60 == 0:
+                        self.logger.info('Load test has been running %s minute' %(running_time/60))
+            self.logger.info('Finish warm-up process')
+        
+        # to linear and cdvr, not dispatch task by main process, but to vod, need dispatch task with max concurrent request numner
+        self.dispatch_task_with_max_concurrent_request()
+    
+    def dispatch_task_with_max_concurrent_request(self):
         pass
     
     def _get_random_content(self):
@@ -384,32 +479,20 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             exit(1)
         return self.test_case_type
     
+    def generate_index_url(self):
+        pass
+    
     def _generate_task(self):
-        content_name = self._get_random_content()
-        
         if self._has_attr('test_type_options'):
             if self.test_case_type not in self.test_type_options:
                 self.logger.fatal('Test type %s in not in %s' % (self.test_case_type, self.test_type_options))
                 exit(1)
         
-        index_url = self.index_url_format % (content_name, content_name, self.test_case_type)
+        index_url = self.generate_index_url()
         client_ip = ip_util.generate_random_ip(ip_segment_range=self.ip_segment_range)
         location = self._get_random_location()
         zone = self._get_random_zone()
         return VEXScheduleReqeustsTask(index_url, client_ip, location, zone)
-    
-    def _generate_warm_up_request_list(self, total_number, warm_up_period_minute):
-        increased_per_second = total_number / warm_up_period_minute if total_number > warm_up_period_minute else 1
-
-        warm_up_minute_list = []
-        tmp_number = increased_per_second
-        while True:
-            if tmp_number <= total_number:
-                warm_up_minute_list.append(tmp_number)
-                tmp_number += increased_per_second
-            else:
-                break
-        return warm_up_minute_list
     
     def _init_apsched(self, gconfig):
         sched = Scheduler()
@@ -436,8 +519,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             
             while(True):
                 time.sleep(1)
-                current_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=0)
-                running_time = time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date)
+                running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
                 if running_time >= self.test_case_survival:
                     break
                 
@@ -455,7 +537,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.dump_summary_statistical_data()
             self.dump_traced_bitrate_contents()
             self.dump_delta_error_details()
-            self.logger.info('Load test finished at %s' % (current_date))
+            self.logger.info('Load test finished at %s' % (time_util.get_local_now()))
         except Exception, e:
             exc_type, exc_value, exc_tb = sys.exc_info() 
             traceback.print_exception(exc_type, exc_value, exc_tb)

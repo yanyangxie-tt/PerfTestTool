@@ -51,8 +51,9 @@ class ResultAnalyzer(ResultCollection):
             with open(error_report_file) as f:
                 error_content += f.read()
         
-        print 'Export error report to %s' %(self.report_dir + os.sep + self.error_file_name)
-        file_util.write_file(self.report_dir, self.error_file_name, error_content, is_delete=True)
+        if error_content != '':
+            print 'Export error report to %s' %(self.report_dir + os.sep + self.error_file_name)
+            file_util.write_file(self.report_dir, self.error_file_name, error_content, is_delete=True)
     
     def export_parsed_traced_data(self):
         pass
