@@ -437,8 +437,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             while(True):
                 time.sleep(1)
                 current_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=0)
-                if time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date) >= self.test_case_survival:
+                running_time = time_util.get_time_gap_in_seconds(current_date, self.load_test_start_date)
+                if running_time >= self.test_case_survival:
                     break
+                
+                if running_time!= 0 and running_time % 60 == 0:
+                    self.logger.info('Load test has been running %s minute' %(running_time/60))
             
             self.logger.info('#' * 100)
             self.logger.info('Reach load test time limitation %s. Shutdown sched and flush statistics info into local file.' % (self.test_case_survival))

@@ -77,7 +77,7 @@ class ResultCollection(DistributeEnv):
             local('unzip -o %s' % (tmp_zip_file_name))
     
     def get_traced_files_reg(self, file_dir, file_name, collected_result_before_now):
-        files_time_reg = time_util.generate_time_reg_list(collected_result_before_now)
+        files_time_reg = time_util.generate_time_reg_list(end_time_hour_before_now=collected_result_before_now)
         files_reg_list = ['%s/%s-%s*' % (file_dir, file_name, time_reg) for time_reg in files_time_reg]
         return string.join(files_reg_list, ' ')
     

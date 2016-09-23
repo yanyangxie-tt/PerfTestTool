@@ -98,8 +98,9 @@ class ResultAnalyzer(ResultCollection):
         bit_rate_counter.parse(bitrate_summarized_content)
         return [index_counter, bit_rate_counter]
     
-    def analysis(self):
-        self.collect()
+    def analysis(self, collect_from_remote=True):
+        if collect_from_remote:
+            self.collect()
         self.export_summarized_report_data()
         self.export_error_data()
         if self.collect_traced_data is True:

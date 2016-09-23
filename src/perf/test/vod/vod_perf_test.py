@@ -131,7 +131,8 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.warn('Current request number for this process(%s) is 0, exit.' % (self.current_process_index))
             exit(0)
         
-        if hasattr(self, 'test_case_warmup_period_minute'):
+        if hasattr(self, 'test_case_warmup_period_minute') and self.test_case_warmup_period_minute > 0:
+            self.logger.info('Start to do performance with warm-up process')
             warm_up_second_list = self._generate_warm_up_list()
             # generate warm-up rate
             if len(warm_up_second_list) > 0:
@@ -146,8 +147,9 @@ class VODPerfTest(VEXPerfTestBase):
                         self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
                         index += 1
                     time.sleep(1)
+            self.logger.info('Finish warm-up process')
         
-        self.logger.debug('Start to do performance with max current request %s of this process' % (self.current_processs_concurrent_request_number))
+        self.logger.info('Start to do performance with max current request %s of this process' % (self.current_processs_concurrent_request_number))
         self.dispatch_task_sched.add_interval_job(self._fetch_task_and_add_to_consumer, seconds=1)
     
     def _fetch_task_and_add_to_consumer(self):
