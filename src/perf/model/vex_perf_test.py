@@ -211,6 +211,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         if type(self.test_machine_hosts) is not list:
             self.test_machine_hosts = self.test_machine_hosts.split(',')
         test_machine_inistace_size = len(self.test_machine_hosts)
+        
+        if not hasattr(self, 'test_case_concurrent_number'):
+            # to linear, its name is test_case_client_number, not test_case_concurrent_number
+            self.test_case_concurrent_number = self.test_case_client_number
+        
         self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
         self.logger.info('Test machine client request number is %s. (VOD is concurrent session number. Linear/Cdvr is total session number)' %(self.test_machine_current_request_number))
         

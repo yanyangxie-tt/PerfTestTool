@@ -5,7 +5,6 @@ from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
 from perf.parser.manifest import LinearManifestChecker
 from utility import time_util
-from PIL.EpsImagePlugin import which
 
 class LinearPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -34,12 +33,13 @@ class LinearPerfTest(VEXPerfTestBase):
         return self.index_url_format % (content_name, content_name, self.test_case_type, content_name)
     
     def dispatch_task_with_max_request(self):
-        start_date = time_util.get_datetime_after(time_util.get_local_now(), seconds=2)
+        start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
         self.dispatch_task_sched.add_interval_job(self._supply_request_to_max_client, start_date=start_date, seconds=self.test_client_bitrate_request_frequency)
     
     def _supply_request_to_max_client(self):
         while(True):
             if len(self.client_index_dict) < self.current_processs_concurrent_request_number:
+                self.logger.debug('Supply: running test client number is %s, less than the expected %s, supply it.' %(len(self.client_index_dict), self.current_processs_concurrent_request_number))
                 task = self.task_queue.get(True, timeout=10)
                 start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
                 task.set_start_date(start_date)
@@ -116,7 +116,10 @@ class LinearPerfTest(VEXPerfTestBase):
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, is_error_response=True)
         '''
     
-    def _generate_warm_up_list(self, total_number, warm_up_period_minute):
+    def _generate_warm_up_list(self):
+        total_number = self.current_processs_concurrent_request_number
+        warm_up_period_minute = self.test_case_warmup_period_minute
+        
         number, remainder_number = divmod(total_number, warm_up_period_minute) if total_number > warm_up_period_minute else (1,0)
         
         warm_up_minute_list = []

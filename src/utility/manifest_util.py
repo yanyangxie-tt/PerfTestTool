@@ -41,7 +41,7 @@ def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=
         else:
             bite_url_list.append(line.replace('\r', ''))
     
-    if sap_required and len(sap_url_list) == 0:
+    if sap_required is True and len(sap_url_list) == 0:
         return []
     
     if sap_required is True:
