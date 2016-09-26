@@ -113,6 +113,10 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.setup_test_machine_conccurent_request_number()
         self.setup_processs_concurrent_request_number()
         self.setup_test_contents()
+        self.set_component_private_environment()
+    
+    def set_component_private_environment(self):
+        pass
     
     def init_result_dir(self):
         # To multiple process, each process has its private log， need use a flag to generate its private result dir. Now we use current_process_index
@@ -263,14 +267,14 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             
             bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random)
             self.schedule_bitrate(task, bitrate_url_list)
-            
-            # To linear and cdvr, record its client ip to do check and supply with max client
-            if self._has_attr('store_client_index_info') is True and hasattr(self, 'client_index_dict'):
-                self.client_index_dict[task.get_client_ip()]=task
+            self.do_index_other_step(task)
             
         except Exception, e:
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
             self.logger.error('Failed to index request. %s' % (e), exc_info=1)
+    
+    def do_index_other_step(self, task):
+        pass
     
     def schedule_bitrate(self, task, bitrate_url_list):
         pass

@@ -3,8 +3,34 @@
 
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
-from perf.parser.manifest import LinearManifestChecker
 from utility import time_util
+import datetime
+
+class LinearBitrateResult():
+    # 保存某一次bitrate response
+    def __init__(self, time_long, bitrate_response):
+        self.time_long = time_long
+        self.bitrate_response = bitrate_response
+        self.parse_bitrate_response(bitrate_response)
+    
+    def parse_bitrate_response(self, bitrate_response):
+        pass
+    
+    def __repr__(self):
+        return self.time_long
+
+class LinearBitrateResultTrace():
+    '''保存一个bitrate的全部运行状态'''
+    def __init__(self, task):
+        self.task = task
+        self.bitrate_url = task.get_bitrate_url()
+        self.bitrate_result_list = []
+        
+    def add_bitrate_result(self, result):
+        if not isinstance(result, LinearBitrateResult):
+            return
+        
+        self.bitrate_result_list.append(result)
 
 class LinearPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -25,8 +51,16 @@ class LinearPerfTest(VEXPerfTestBase):
         self._set_attr('test_bitrate_call_interval', 2)
         self._set_attr('test_client_bitrate_request_frequency', 2)
         
-        self._set_attr('store_client_index_info', True, True)
-        self.client_index_dict = {}
+        self._set_attr('record_client_number', True, True)
+        self.client_number_dict = {}
+        self.check_client_ip_dict = {}
+    
+    def set_component_private_environment(self):
+        self.set_checked_client_number()
+    
+    def set_checked_client_number(self):
+        checked_client_number = int(self.current_processs_concurrent_request_number * self.client_response_check_percent)
+        self.checked_client_number = 1 if checked_client_number < 1 else checked_client_number
     
     def generate_index_url(self):
         content_name = self._get_random_content()
@@ -37,15 +71,23 @@ class LinearPerfTest(VEXPerfTestBase):
         self.dispatch_task_sched.add_interval_job(self._supply_request_to_max_client, start_date=start_date, seconds=self.test_client_bitrate_request_frequency)
     
     def _supply_request_to_max_client(self):
-        while(True):
-            if len(self.client_index_dict) < self.current_processs_concurrent_request_number:
-                self.logger.debug('Supply: running test client number is %s, less than the expected %s, supply it.' %(len(self.client_index_dict), self.current_processs_concurrent_request_number))
-                task = self.task_queue.get(True, timeout=10)
-                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
-                task.set_start_date(start_date)
-                self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
-            else:
-                break
+        try:
+            with self.index_lock:
+                if len(self.client_number_dict) < self.current_processs_concurrent_request_number:
+                    self.logger.debug('Supply: running test client number is %s, less than the expected %s, supply it.' %(len(self.client_number_dict), self.current_processs_concurrent_request_number))
+                    gap = self.current_processs_concurrent_request_number - len(self.client_number_dict)
+                    for i in range(0, gap):
+                        task = self.task_queue.get(True, timeout=10)
+                        start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
+                        task.set_start_date(start_date)
+                        self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
+                        self.logger.debug('Supply: add %s task to test' %(i + 1))
+        except Exception, e:
+            exit(1)
+    
+    def do_index_other_step(self, task):
+        # To linear and cdvr, record its client ip to do check and supply with max client
+        self.client_number_dict[task.get_client_ip()]=task
     
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):
@@ -58,63 +100,42 @@ class LinearPerfTest(VEXPerfTestBase):
             self.task_consumer_sched.add_interval_job(self.do_bitrate, start_date=start_date, seconds=self.test_client_bitrate_request_frequency, args=(b_task,))
     
     def do_bitrate_other_step(self, task, response_text):
-        # check or send psn
         if self._has_attr('send_psn_message') is False and self._has_attr('client_response_check_when_running') is False:
             return
         
-        # check
-        
-        # linear要好好想想，bitrate请求出错了。怎么处理？持续retry？还是重发一个其他的index?
-        # linear的重试次数要加大，至少要10次。然后bitrate failed重试10次
-        # 弄一个dict。key是client ip。然后查dict的len, 如果比期望的最大并发小，那么在distribute task的定期检查中，发index request补全
-        # 这样，当index失败了的话，不会往这个池子里加任务。distribute task会补全压力。
-        # 当bitrate失败的话，从这个dict中移除client ip.这样也会补全压力
-        # 对于cdvr。也可以这么做。当遇到endlist tag的时候，从这个dict中移除client ip
-        # 按照上述的设计。task_generater就应该维持一定的量。和vod的task_generater是一样的。只不过由task distribute来控制是不是读取task queue
-        # linear的result验证怎么办？
-        
-        '''
-        #
-        self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
-        checker = LinearManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_')
-        
-        if self._has_attr('client_response_check_when_running') is True:
-            self.check_response(task, checker)
+        if self._has_attr('client_response_check_when_running'):
+            with self.bitrate_lock:
+                client_ip = task.get_client_ip()
+                if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
+                    self.check_client_ip_dict[client_ip]=LinearBitrateResultTrace(task)
+                
+            if self.check_client_ip_dict.has_key(client_ip) and task.get_bitrate_url() == self.check_client_ip_dict[client_ip].bitrate_url:
+                # 同一个index，访问多个bitrate，只存储一个bitrate的状态
+                time_long = time_util.datetime_2_long(time_util.get_local_now())
+                self.logger.info('Store bitrate response. time:%s, bitrate url: %s' %(time_long, task.get_bitrate_url()))
+                bitrate_result = LinearBitrateResult(time_long, response_text)
+                self.check_client_ip_dict[client_ip].add_bitrate_result(bitrate_result)
         
         if self._has_attr('send_psn_message') is True:
-            linear的client_response_ad_mid_roll_ts_number应该是每个ad的秒数，需要配置下。
-            t6linear ad的number是15个ts, self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number= 2*15
-            tvelinear ad的number是5个ts, self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number= 6*5
-            psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
-            if self._has_attr('psn_send') is True:
-                self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
-            elif self._has_attr('psn_fake_send') is True:
-                self.send_psn(task, self.psn_fake_tracking_position_id_dict, psn_gap_list)
-            
-            if self._has_attr('psn_endall_send') is True:
-                self.send_endall_psn(task)
-        '''
+            # 发送psn
+            #linear的client_response_ad_mid_roll_ts_number应该是每个ad的秒数，需要配置下。
+            #t6linear ad的number是15个ts, self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number= 2*15
+            #tvelinear ad的number是5个ts, self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number= 6*5
+            #psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
+            #if self._has_attr('psn_send') is True:
+            #    self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
+            #elif self._has_attr('psn_fake_send') is True:
+            #    self.send_psn(task, self.psn_fake_tracking_position_id_dict, psn_gap_list)
+            #
+            #if self._has_attr('psn_endall_send') is True:
+            #    self.send_endall_psn(task)
+            pass
     
     def check_response(self, task, manifest_checker):
-        pass
-        '''
-        with self.bitrate_lock:
-            if self.bitrate_counter.total_count % self.check_percent_factor != 0:
-                return
+        # linear的check response需要定时触发
+        # cdvr的check response是在遇到endlist tag的时候触发。以及定时触发(为了防止一直没有endlist tag)
         
-        self.logger.debug('Check bitrate client response. task: %s' %(task))
-        error_message = manifest_checker.check(self.client_response_media_sequence, self.client_response_content_segment_number,
-                self.client_response_endlist_tag, self.client_response_drm_tag, self.client_response_ad_mid_roll_position, self.client_response_ad_pre_roll_ts_number,
-                self.client_response_ad_mid_roll_ts_number, self.client_response_ad_post_roll_ts_number,)
-        if error_message is not None and error_message != '':
-            if self._has_attr('client_response_error_dump') is True:
-                self.logger.error('%s, Manifest:%s' % (error_message, manifest_checker.manifest))
-            else:
-                self.logger.error('%s' % (error_message))
-            
-            self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
-            self._increment_counter(self.bitrate_counter, self.bitrate_lock, is_error_response=True)
-        '''
+        pass
     
     def _generate_warm_up_list(self):
         total_number = self.current_processs_concurrent_request_number
