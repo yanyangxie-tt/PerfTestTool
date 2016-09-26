@@ -28,6 +28,16 @@ class VODPerfTest(VEXPerfTestBase):
         content_name = self._get_random_content()
         return self.index_url_format % (content_name, content_name, self.test_case_type)
     
+    def schedule_bitrate(self, task, bitrate_url_list):
+        for i, bitrate_url in enumerate(bitrate_url_list):
+            b_task = task.clone()
+            delta_milliseconds = self.test_bitrate_serial_time * (i + 1) if self.test_bitrate_serial else self.test_bitrate_serial_time
+            start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=delta_milliseconds)
+            b_task.set_bitrate_url(bitrate_url)
+            b_task.set_start_date(start_date)
+            self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
+            self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+    
     def do_bitrate_other_step(self, task, response_text):
         if self._has_attr('send_psn_message') is False and self._has_attr('client_response_check_when_running') is False:
             return
@@ -65,16 +75,8 @@ class VODPerfTest(VEXPerfTestBase):
             
             self.error_record_queue.put('%-17s: %s' % (task.get_client_ip(), error_message), False, 2)
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, is_error_response=True)
-
-    def task_generater(self):
-        while True:
-            if self.task_queue.full():
-                self.logger.debug('Task queue is meet the max number %s, sleep 5 seconds' % (self.task_queue.maxsize))
-                time.sleep(5)
-                continue
-            self.task_queue.put_nowait(self._generate_task())
     
-    def dispatch_task_with_max_concurrent_request(self):
+    def dispatch_task_with_max_request(self):
         self.logger.info('Start to do vod performance with max current request %s of this process' % (self.current_processs_concurrent_request_number))
         self.dispatch_task_sched.add_interval_job(self._fetch_task_and_add_to_consumer, seconds=1)
     

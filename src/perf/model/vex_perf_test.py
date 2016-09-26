@@ -147,7 +147,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.bitrate_lock = threading.RLock()
     
     def init_queue(self):
-        self.task_queue = Queue.Queue(10000)
+        self.task_queue = Queue.Queue(1000)
         self.bitrate_record_queue = Queue.Queue(10000)
         self.error_record_queue = Queue.Queue(100000)
     
@@ -257,17 +257,18 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
             bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random)
-            for i, bitrate_url in enumerate(bitrate_url_list):
-                b_task = task.clone()
-                delta_milliseconds = self.test_bitrate_serial_time * (i + 1) if self.test_bitrate_serial else self.test_bitrate_serial_time
-                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=delta_milliseconds)
-                b_task.set_bitrate_url(bitrate_url)
-                b_task.set_start_date(start_date)
-                self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
-                self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+            self.schedule_bitrate(task, bitrate_url_list)
+            
+            # To linear and cdvr, record its client ip to do check and supply with max client
+            if self._has_attr('store_client_index_info') is True and hasattr(self, 'client_index_dict'):
+                self.client_index_dict[task.get_client_ip()]=task
+            
         except Exception, e:
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
             self.logger.error('Failed to index request. %s' % (e), exc_info=1)
+    
+    def schedule_bitrate(self, task, bitrate_url_list):
+        pass
     
     def do_bitrate(self, task):
         try:
@@ -289,6 +290,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             else:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
             
+            #check or send psn
             self.do_bitrate_other_step(task, response_text)
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error_request=True)
@@ -424,7 +426,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.task_generater.start()
     
     def task_generater(self):
-        pass
+        while True:
+            if self.task_queue.full():
+                self.logger.debug('Task queue is meet the max number %s, sleep 5 seconds' % (self.task_queue.maxsize))
+                time.sleep(5)
+                continue
+            self.task_queue.put_nowait(self._generate_task())
     
     def dispatch_task(self):
         self.logger.debug('Start to dispatch task')
@@ -432,33 +439,36 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.logger.warn('Current request number for this process(%s) is 0, exit.' % (self.current_process_index))
             exit(0)
         
-        # warm up
         if hasattr(self, 'test_case_warmup_period_minute') and self.test_case_warmup_period_minute > 0:
-            self.logger.info('Start to do performance with warm-up process')
-            warm_up_list = self._generate_warm_up_list()
-            # generate warm-up rate
-            if len(warm_up_list) > 0:
-                # Fetch tasks by the number of warm_up_list, and then add it to task consumer(task sched)
-                for task_number in warm_up_list:
-                    self.logger.debug('Warm-up stage: Put %s task into task queue' % (task_number))
-                    index = 0
-                    while index < task_number:
-                        task = self.task_queue.get(True, timeout=10)
-                        start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=3)
-                        task.set_start_date(start_date)
-                        self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
-                        index += 1
-                    time.sleep(self.warm_up_time_gap)
-                    
-                    running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
-                    if running_time!= 0 and running_time % 60 == 0:
-                        self.logger.info('Load test has been running %s minute' %(running_time/60))
-            self.logger.info('Finish warm-up process')
+            self.do_warm_up()
         
-        # to linear and cdvr, not dispatch task by main process, but to vod, need dispatch task with max concurrent request numner
-        self.dispatch_task_with_max_concurrent_request()
+        # to vod, need dispatch task with max concurrent request number
+        # to linear and cdvr, check the max client number, if less than max client number, add client
+        self.dispatch_task_with_max_request()
     
-    def dispatch_task_with_max_concurrent_request(self):
+    def do_warm_up(self): 
+        self.logger.info('Start to do performance with warm-up process')
+        warm_up_list = self._generate_warm_up_list()
+        # generate warm-up rate
+        if len(warm_up_list) > 0:
+            # Fetch tasks by the number of warm_up_list, and then add it to task consumer(task sched)
+            for task_number in warm_up_list:
+                self.logger.debug('Warm-up stage: Put %s task into task queue' % (task_number))
+                index = 0
+                while index < task_number:
+                    task = self.task_queue.get(True, timeout=10)
+                    start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=3)
+                    task.set_start_date(start_date)
+                    self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
+                    index += 1
+                time.sleep(self.warm_up_time_gap)
+                
+                running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
+                if running_time!= 0 and running_time % 60 == 0:
+                    self.logger.info('Load test has been running %s minute' %(running_time/60))
+        self.logger.info('Finish warm-up process')
+    
+    def dispatch_task_with_max_request(self):
         pass
     
     def _get_random_content(self):
