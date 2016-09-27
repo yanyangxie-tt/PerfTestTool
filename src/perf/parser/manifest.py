@@ -86,6 +86,15 @@ class ManifestPaser(object):
         else:
             return None
 
+class LinearManifestChecker(ManifestPaser):
+    def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
+        super(VODManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
+        self.parse()
+        self.error = None
+    
+    def check(self):
+        pass
+
 class VODManifestChecker(ManifestPaser):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
         super(VODManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
@@ -134,19 +143,6 @@ class VODManifestChecker(ManifestPaser):
             else:
                 break
         self.error = message
-        return self.error
-
-class LinearManifestChecker(ManifestPaser):
-    def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
-        super(VODManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
-        self.parse()
-        self.error = None
-    
-    def check(self, media_sequence_number, entertainment_ts_number, end_list_tag, drm_tag,
-              ad_mid_position_list, ad_pre_number, ad_mid_number, ad_post_number,
-              iframe_tag='IsIFrame=true', ad_iframe_tag='ad_iframe', audio_tag='IsAudio=true', ad_audio_tag='ad_audio'):
-        
-        # how to check linear response?
         return self.error
 
 if __name__ == '__main__':    

@@ -3,8 +3,9 @@
 
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
+from perf.parser.manifest import LinearManifestChecker
 from utility import time_util
-import datetime
+
 
 class LinearBitrateResult():
     # 保存某一次bitrate response
@@ -17,7 +18,7 @@ class LinearBitrateResult():
         pass
     
     def __repr__(self):
-        return self.time_long
+        return '%s:%s' (self.time_long, self.bitrate_response)
 
 class LinearBitrateResultTrace():
     '''保存一个bitrate的全部运行状态'''
@@ -42,6 +43,7 @@ class LinearPerfTest(VEXPerfTestBase):
         super(LinearPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
+        self._set_attr('client_response_asset_tag', 'test')
         self._set_attr('test_type_options', ['LINEAR_T6','LINEAR_TVE'])
         self._set_attr('index_url_format', 'http://mm.linear.%s.comcast.net/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&DeviceId=1')
         self._set_attr('warm_up_time_gap', 60) # in warm up stage, time gap in each requests bundle
@@ -100,42 +102,25 @@ class LinearPerfTest(VEXPerfTestBase):
             self.task_consumer_sched.add_interval_job(self.do_bitrate, start_date=start_date, seconds=self.test_client_bitrate_request_frequency, args=(b_task,))
     
     def do_bitrate_other_step(self, task, response_text):
-        if self._has_attr('send_psn_message') is False and self._has_attr('client_response_check_when_running') is False:
-            return
-        
         if self._has_attr('client_response_check_when_running'):
             with self.bitrate_lock:
                 client_ip = task.get_client_ip()
                 if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
                     self.check_client_ip_dict[client_ip]=LinearBitrateResultTrace(task)
+                    self.logger.info('Add client %s into checked list. Current check client is %s, max is %s' %(client_ip, len(self.check_client_ip_dict), self.checked_client_number))
                 
             if self.check_client_ip_dict.has_key(client_ip) and task.get_bitrate_url() == self.check_client_ip_dict[client_ip].bitrate_url:
-                # 同一个index，访问多个bitrate，只存储一个bitrate的状态
+                # Same client, one index with multiple bitrate, only record one bitrate response trace
                 time_long = time_util.datetime_2_long(time_util.get_local_now())
                 self.logger.info('Store bitrate response. time:%s, bitrate url: %s' %(time_long, task.get_bitrate_url()))
                 bitrate_result = LinearBitrateResult(time_long, response_text)
                 self.check_client_ip_dict[client_ip].add_bitrate_result(bitrate_result)
         
         if self._has_attr('send_psn_message') is True:
-            # 发送psn
-            #linear的client_response_ad_mid_roll_ts_number应该是每个ad的秒数，需要配置下。
-            #t6linear ad的number是15个ts, self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number= 2*15
-            #tvelinear ad的number是5个ts, self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number= 6*5
-            #psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
-            #if self._has_attr('psn_send') is True:
-            #    self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
-            #elif self._has_attr('psn_fake_send') is True:
-            #    self.send_psn(task, self.psn_fake_tracking_position_id_dict, psn_gap_list)
-            #
-            #if self._has_attr('psn_endall_send') is True:
-            #    self.send_endall_psn(task)
-            pass
-    
-    def check_response(self, task, manifest_checker):
-        # linear的check response需要定时触发
-        # cdvr的check response是在遇到endlist tag的时候触发。以及定时触发(为了防止一直没有endlist tag)
-        
-        pass
+            checker = LinearManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)
+            psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_ts_number * float(i)) for i in self.psn_message_sender_position]
+            if self._has_attr('psn_send') is True:
+                self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
     
     def _generate_warm_up_list(self):
         total_number = self.current_processs_concurrent_request_number
