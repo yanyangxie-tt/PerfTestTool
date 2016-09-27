@@ -18,6 +18,7 @@ class ManifestPaser(object):
         self.ad_post_number = 0
         self.ad_mid_number = 0
         self.ad_mid_position_list = []
+        self.ad_url_list=[]
         self.sequence_number = 0
         self.has_asset_id = False
         self.entertainment_ts_number = 0
@@ -49,6 +50,7 @@ class ManifestPaser(object):
             elif line.find('.ts') > 0:
                 if line.find(self.ad_tag) > -1:
                     self.ad_ts_number += 1
+                    self.ad_url_list.append(line)
                     
                     if entertainment_ts_index < 1:
                         # not found entertainment ts, should be preroll ad
@@ -90,10 +92,12 @@ class LinearManifestChecker(ManifestPaser):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
         super(VODManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
         self.parse()
-        self.error = None
+        self.ad_data_transform()
     
-    def check(self):
-        pass
+    def ad_data_transform(self):
+        if self.ad_pre_number > 0:
+            self.ad_in_first_postion = True
+        
 
 class VODManifestChecker(ManifestPaser):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):

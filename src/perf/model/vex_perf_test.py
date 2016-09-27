@@ -400,6 +400,9 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 self.psn_count, self.endall_psn_count = (0, 0)
     
     def dump_delta_error_details(self):
+        # to linear and cdvr, need analysis traced data before dump error info, then put the error into to error queue
+        self.analysis_traced_bitrate_response()
+        
         if self.error_record_queue.empty():
             return
         
@@ -407,6 +410,9 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         delta_error_file = vex_util.get_timed_file_name(self.test_result_report_error_file)
         self.logger.info('Export delta error report file to %s/%s at %s' % (self.test_result_report_error_dir, delta_error_file, time_util.get_local_now()))
         file_util.write_file(self.test_result_report_error_dir, delta_error_file, datas, mode='a', is_delete=True)
+    
+    def analysis_traced_bitrate_response(self):
+        pass
     
     def dump_traced_bitrate_contents(self):
         if self.bitrate_record_queue.empty():
