@@ -30,7 +30,7 @@ class LinearBitrateResult():
     
     def __repr__(self):
         return '%s[%s]:sequence_number:%s, entertainment number:%-2s ad number:%-2s' \
-            (self.task.get_client_ip(), self.time_long, self.sequence_number, self.entertainment_number, self.ad_number)
+            %(self.task.get_client_ip(), self.request_time_long, self.sequence_number, self.entertainment_number, self.ad_number)
 
 class LinearBitrateResultTrace():
     '''保存一个bitrate的全部运行状态'''
@@ -54,7 +54,7 @@ class LinearBitrateResultTrace():
         # 那么之后的包含ad的manifest都会被remove掉，直至发现没有ad的manifest
         # 2. 查看多久出现的ad。从没有ad的manifest算起，第一个出现ad的时间要小于期待的时间间隔(300/30的300)。如果大于，则记录异常。
         # 3. 查找到第一个出现ad的manifest，往下查找到到第一个没有ad的manifest。计算ad数量，看看是不是匹配需要的。
-        # 同时，将这个第一个没有ad的manifest作为起始位置，把之前的manifest记录都丢弃。重复上个步骤，直到检查到记录的dict完全没有了。
+        # 同时，将这个第一个没有ad的manifest作为起始位置，把之前的manifest记录都丢弃。重复上个步骤，直到检查到记录的dict完全没有了。实际上这里是个递归
         # 4. 如果压根就没找到ad，检查完了之后，就把所有的内容丢弃
         # 5. 如果出现ad后，dict最后的manfiest还是带有ad的。说明ad周期没结束。此周期的数据不能删除。程序退出
         pass
@@ -146,6 +146,7 @@ class LinearPerfTest(VEXPerfTestBase):
                 ad_number = checker.ad_ts_number
                 sequence_number = checker.sequence_number
                 entertainment_number= checker.entertainment_ts_number
+                ad_in_first_postion = checker.ad_in_first_postion
                 
                 # Same client, one index with multiple bitrate, only record one bitrate response trace
                 request_time_long = time_util.datetime_2_long(time_util.get_local_now())

@@ -1,8 +1,6 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
-import time
-
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
 from perf.parser.manifest import VODManifestChecker

@@ -27,7 +27,7 @@ class ManifestPaser(object):
     def parse(self):
         self.asset_id = self.extract_asset_id(self.request_url)
         if self.asset_id is None:
-            return
+            self.has_asset_id = False
         
         manifest_list = self.manifest.split('\n')
         entertainment_ts_index, tmp_index = 0, 0
@@ -79,7 +79,7 @@ class ManifestPaser(object):
             return psn_info[0]            
     
     def extract_asset_id(self, url):
-        flag = '/(%s.*)/' % (self.asset_id_tag)
+        flag = '/.*(%s.*)/' % (self.asset_id_tag)
         p = r'\w*\W*%s[\.\n]*' % (flag)
         t_info = re.findall(p, url)
     
@@ -90,13 +90,13 @@ class ManifestPaser(object):
 
 class LinearManifestChecker(ManifestPaser):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
-        super(VODManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
+        super(LinearManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
         self.parse()
         self.ad_data_transform()
     
     def ad_data_transform(self):
-        if self.ad_pre_number > 0:
-            self.ad_in_first_postion = True
+        self.ad_in_first_postion = True if self.ad_pre_number > 0 else False
+            
         
 
 class VODManifestChecker(ManifestPaser):
