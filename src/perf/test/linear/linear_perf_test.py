@@ -10,7 +10,6 @@ from perf.model.vex_perf_test import VEXPerfTestBase
 from perf.parser.manifest import LinearManifestChecker
 from utility import time_util
 
-
 class LinearBitrateResult():
     # 保存某一次bitrate response
     def __init__(self, task, request_time, sequence_number, entertainment_number, ad_number, ad_url_list):
@@ -22,7 +21,6 @@ class LinearBitrateResult():
         @param entertainment_number: 
         @param ad_number: total ad number
         @param ad_url_list: ad urls
-        @param ad_in_first_postion: Boolean, whether ad ts is found in the first position in manifest
         '''
         
         self.task = task
@@ -48,8 +46,8 @@ class LinearBitrateResultTrace():
         self.bitrate_result_list = []
         self.ad_insertion_frequency = ad_insertion_frequency
         self.content_segment_time = content_segment_time
-        self.entertainment_ts_gap = int(ad_insertion_frequency.split('/')[0]) * content_segment_time
-        self.max_ad_number_in_ad_interval = int(ad_insertion_frequency.split('/')[1])
+        self.round_ad_number = int(ad_insertion_frequency.split('/')[1])
+        self.round_entertainment_number = int(ad_insertion_frequency.split('/')[0])
         self.sequence_increase_request_number = sequence_increase_request_number
         
         self.error_list = []
@@ -61,7 +59,10 @@ class LinearBitrateResultTrace():
         with self.lock:
             self.bitrate_result_list.append(result)
     
-    def check(self):
+    def check(self, logger=None):
+        if logger is not None:
+            self.logger = logger
+        
         if len(self.bitrate_result_list) == 0:
             return
 
@@ -72,13 +73,24 @@ class LinearBitrateResultTrace():
             self.bitrate_result_list = []
         
         # 首先分组bitrate url list.(cdvr的无需分组。没遇见endlist就不检查)
-        bitrate_group_list = self.group_result(bitrate_result_list)
+        if self.logger: logger.debug('Bitrate list in checked list:\n%s' %(bitrate_result_list))
+        bitrate_group_list, has_ad_in_total = self.group_result(bitrate_result_list)
+        if self.logger: logger.info('Checked list has ad:%s, Grouped result list is:\n%s' %(has_ad_in_total, bitrate_group_list))
+        
+        # 说过分组只有一个，且没有ad。那么很很可能一直没有ad。这样，如果entertainment的数量大于了entertainment周期的number。那么应该直接记录错误。并且检查结束
+        if len(bitrate_group_list) == 1 and has_ad_in_total is False:
+            if len(bitrate_result_list) > self.round_entertainment_number:
+                message = 'Entertainment number in one round is exceeded。 Time window: %s~%s. Entertainment number is %s, larger than %s' \
+                        %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time, len(bitrate_result_list), self.round_entertainment_number)
+                self.record_error(message)
+                return
         
         # 最后一个分组，不确定是不是完整的，因此，不check。直接把它加回去到trace 列表中
         latest_bitrate_group = bitrate_group_list.pop(-1)
         with self.lock:
             self.bitrate_result_list = latest_bitrate_group + self.bitrate_result_list
         
+        if self.logger: logger.info('Grouped result list(Removed latest) is:\n%s' %(bitrate_group_list))
         # 接下来，针对每个bitrate 分组，进行分析
         for bitrate_group in bitrate_group_list:
             self.analysis_bitrate_group(bitrate_group)
@@ -89,6 +101,7 @@ class LinearBitrateResultTrace():
         if len(bitrate_result_list) == 0:
             return []
         
+        has_ad_in_total = False
         total_groups = []
         groups = []
         
@@ -100,33 +113,60 @@ class LinearBitrateResultTrace():
                 total_groups.append(groups)
                 groups = []
                 groups.append(bitrate_result)
+                has_ad_in_total = True
             else:
                 groups.append(bitrate_result)
         
         if len(groups) > 0:
             total_groups.append(groups)
         
-        return total_groups
+        return total_groups, has_ad_in_total
 
     # 如何加单元测试，测试这个方法？
     def analysis_bitrate_group(self, bitrate_result_list):
+        if self.logger: 
+            self.logger.info('#'*100)
+            for b in bitrate_result_list:
+                self.logger.info(b)
+        
+        if len(bitrate_result_list) == 0:
+            return
+        
+        #如果bitrate_result_list第一个就是ad。那么就是从测试开始进入，就进入ad了。没办法check，因此忽略
+        if bitrate_result_list[0].exist_ad is True:
+            return
+        
         ad_url_set = set([])
+        entertainment_request_size = 0
         for i, bitrate_result in enumerate(bitrate_result_list):
             if i > self.sequence_increase_request_number:
                 # 两个bitrate response间隔sequence_increase_request_number，sequence应该增加，否则记录错误
                 pre_bitrate_result = bitrate_result_list[i - self.sequence_increase_request_number]
                 if bitrate_result.sequence_number <= pre_bitrate_result.sequence_number:
-                    self.error_list.append('Sequence number is not increased. %s:%s, %s:%s' \
-                            % (pre_bitrate_result.request_time, pre_bitrate_result.sequence_number, bitrate_result.request_time, bitrate_result.sequence_number,))
+                    message = 'Sequence number is not increased. %s:%s, %s:%s' \
+                            % (pre_bitrate_result.request_time, pre_bitrate_result.sequence_number, bitrate_result.request_time, bitrate_result.sequence_number,)
+                    self.record_error(message)
                 
-                if bitrate_result.ad_number > 0:
-                    ad_url_set.union(set(bitrate_result.ad_url_list))
+            if bitrate_result.ad_number > 0:
+                ad_url_set = ad_url_set.union(set(bitrate_result.ad_url_list))
+            else:
+                entertainment_request_size += 1
         
-        if len(ad_url_set) != self.max_ad_number_in_ad_interval:
+        if entertainment_request_size > self.round_entertainment_number:
+            message = 'Entertainment number in one round is exceeded。 Time window: %s~%s. Entertainment number is %s, larger than %s' \
+                    %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time, entertainment_request_size, self.round_entertainment_number)
+            self.record_error(message)
+        
+        if len(ad_url_set) != self.round_ad_number:
             # 如果ad的数量少于期待值, 记录错误
-            self.error_list.append('AD number is not as expected. Time window: %s~%s. ad number:%s, expected ad number: %s' \
-                    %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time ,len(ad_url_set), self.max_ad_number_in_ad_interval))
-
+            message = 'AD number is not as expected. Time window: %s~%s. ad number:%s, expected ad number: %s' \
+                    %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,len(ad_url_set), self.round_ad_number)
+            self.record_error(message)
+    
+    def record_error(self, message):
+        self.error_list.append(message)
+        if self.logger: self.logger.error('%s:%s. %s' %(self.task.get_client_ip(), message, self.task))
+    
 class LinearPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
         '''
@@ -222,7 +262,7 @@ class LinearPerfTest(VEXPerfTestBase):
                 
                 with self.bitrate_lock:
                     self.check_client_ip_dict[client_ip].add_bitrate_result(bitrate_result)
-                self.logger.info('Store bitrate response. %s' % (bitrate_result))
+                self.logger.debug('Store bitrate response. %s' % (bitrate_result))
         
         if self._has_attr('send_psn_message') is True:
             if checker is None:
@@ -238,13 +278,11 @@ class LinearPerfTest(VEXPerfTestBase):
             self.do_bitrate_result_trace_check(client_ip, bitrate_result_trace)
     
     def do_bitrate_result_trace_check(self, client_ip, bitrate_result_trace):
-        print 'bitrate_result_trace.bitrate_result_list size:%s' %(len(bitrate_result_trace.bitrate_result_list)) 
-        bitrate_result_trace.check()
+        bitrate_result_trace.check(self.logger)
         
         if len(bitrate_result_trace.error_list) != 0:
-            bitrate_result_trace.error_list.insert(0, client_ip)
-            error_contents = string.join(bitrate_result_trace.error_list, '\n')
-            
+            error_contents = client_ip + '::'
+            error_contents += string.join(bitrate_result_trace.error_list, '||')
             self.error_record_queue.put(error_contents)
             bitrate_result_trace.error_list = []
     

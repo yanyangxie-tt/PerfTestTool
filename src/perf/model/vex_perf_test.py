@@ -252,7 +252,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response, used_time, response_text, status_code = self._get_fake_response(index_fake_file, fake_file_att_name='index_fake_response')
             else:
                 response, used_time = self._get_vex_response(task, tag='Index')
-                response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
+                response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
@@ -287,7 +287,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response, used_time, response_text, status_code = self._get_fake_response(bitrate_fake_file, fake_file_att_name='bitrate_fake_response')
             else:
                 response, used_time = self._get_vex_response(task, tag='Bitrate')
-                response_text, status_code = response.text, response.status_code if response is not None else ('', 500)
+                response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
