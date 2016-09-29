@@ -11,6 +11,7 @@ from fabric.tasks import execute
 
 from perf.model.vex_distribute import DistributeEnv
 from utility import fab_util, vex_util, time_util
+from fabric.contrib.files import exists
 
 class ResultCollection(DistributeEnv):
     # collection test result from remote test machine
@@ -49,7 +50,7 @@ class ResultCollection(DistributeEnv):
         self.traced_files_reg = self.get_traced_files_reg(self.traced_file_dir_reg, self.test_result_report_traced_file, self.collected_result_before_now)
         self.error_files_reg = self.get_traced_files_reg(self.error_file_dir_reg, self.test_result_report_error_file, self.collected_result_before_now)
     
-    def collect_vod_test_result_from_remote(self):
+    def collect_test_result_from_remote(self):
         print 'Start to download files from remote'
         tmp_zip_file_name = 'tmp-vex-load-test-result.zip'
         local_host_zip_dir = self.local_zip_dir + os.sep + string.replace(env.host, '.', '-')
@@ -68,6 +69,11 @@ class ResultCollection(DistributeEnv):
                 print 'zip result file in remote test machine using command \'zip -r %s %s %s\'' % (tmp_zip_file, self.report_file_reg, self.error_files_reg)
                 run('zip -r %s %s %s' % (tmp_zip_file, self.report_file_reg, self.error_files_reg), quiet=True)
             
+            # check whether there is zipped file. (if not test result, will not have zipped file)
+            if not exists(tmp_zip_file):
+                print 'Not exist %s, should because no report file in current time window. exit' %(tmp_zip_file)
+                exit(0)
+            
             print 'Start to download results info from remote %s to local folder %s' % (tmp_zip_file, local_host_zip_dir)
             get(tmp_zip_file, local_host_zip_dir)
             print 'Finish to download delta report from remote server'
@@ -84,5 +90,5 @@ class ResultCollection(DistributeEnv):
     def collect(self):
         local('rm -rf %s/*' %(self.local_zip_dir))
         with settings(parallel=True, roles=[self.perf_test_machine_group, ]):
-            execute(self.collect_vod_test_result_from_remote)
+            execute(self.collect_test_result_from_remote)
 

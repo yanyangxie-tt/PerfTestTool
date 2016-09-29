@@ -37,23 +37,29 @@ class ResultAnalyzer(ResultCollection):
         final_index_report_counter = self._merge_vex_count_list(index_counter_list)
         final_bitrate_report_counter = self._merge_vex_count_list(bitrate_counter_list)
         
-        report_content = final_index_report_counter.dump_counter_info(final_index_report_counter.counter_period, tag=self.index_summary_tag,)
-        report_content += '\n' + final_bitrate_report_counter.dump_counter_info(final_bitrate_report_counter.counter_period, tag=self.bitrate_summary_tag,)
-        print report_content
-        print 'Export summarized report to %s' %(self.report_dir + os.sep + self.summary_file_name)
-        file_util.write_file(self.report_dir, self.summary_file_name, report_content, is_delete=True)
+        if final_index_report_counter is not None and final_bitrate_report_counter is not None:
+            report_content = final_index_report_counter.dump_counter_info(final_index_report_counter.counter_period, tag=self.index_summary_tag,)
+            report_content += '\n' + final_bitrate_report_counter.dump_counter_info(final_bitrate_report_counter.counter_period, tag=self.bitrate_summary_tag,)
+            print report_content
+            print 'Export summarized report to %s' %(self.report_dir + os.sep + self.summary_file_name)
+            file_util.write_file(self.report_dir, self.summary_file_name, report_content, is_delete=True)
     
     def export_error_data(self):
-        '''Export test errors to local file'''
         error_report_file_list = file_util.get_matched_file_list(self.local_zip_dir, self.test_result_report_error_file + '-.*\d+$')
         error_content = ''
         for error_report_file in error_report_file_list:
             with open(error_report_file) as f:
                 error_content += f.read()
         
+        # to linear and cdvr, need merge
+        error_content = self.reorganize_error_data(error_content)
+        
         if error_content != '':
             print 'Export error report to %s' %(self.report_dir + os.sep + self.error_file_name)
             file_util.write_file(self.report_dir, self.error_file_name, error_content, is_delete=True)
+    
+    def reorganize_error_data(self, error_content):
+        return error_content
     
     def export_parsed_traced_data(self):
         pass

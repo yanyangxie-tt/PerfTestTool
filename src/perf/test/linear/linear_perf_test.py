@@ -81,16 +81,16 @@ class LinearBitrateResultTrace():
             self.bitrate_result_list = []
         
         # 1st, separate bitrate url list to multiple data segment
-        if self.logger: logger.debug('Bitrate list in checked list:\n%s' %(bitrate_result_list))
+        self.log_debug('Bitrate list in checked list:\n%s' %(bitrate_result_list))
         bitrate_group_list, has_ad_in_total = self.group_result(bitrate_result_list)
-        if self.logger: logger.debug('Checked list has ad:%s, Grouped result list is:\n%s' %(has_ad_in_total, bitrate_group_list))
+        self.log_debug('Checked list has ad:%s, Grouped result list is:\n%s' %(has_ad_in_total, bitrate_group_list))
         
         # 2st, if separated list(group list) has only one element, then it maybe has no ad. So need check whether its request number is larger than expected
         # if no ad, then record the error
         if len(bitrate_group_list) == 1 and has_ad_in_total is False:
-            if len(bitrate_result_list) > self.entertainment_number_in_complete_cycle:
-                message = 'Entertainment number in one round is exceeded。 Time window: %s~%s. Entertainment number is %s, larger than %s' \
-                        %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time, len(bitrate_result_list), self.entertainment_number_in_complete_cycle)
+            if len(bitrate_group_list[0]) > self.entertainment_number_in_complete_cycle:
+                message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
+                    %(len(bitrate_group_list[0]), self.entertainment_number_in_complete_cycle, bitrate_group_list[0][0].request_time, bitrate_result_list[-1].request_time, )
                 self.record_error(message)
                 return
         
@@ -99,7 +99,7 @@ class LinearBitrateResultTrace():
         with self.lock:
             self.bitrate_result_list = latest_bitrate_group + self.bitrate_result_list
         
-        if self.logger: logger.debug('Grouped result list(Removed latest) is:\n%s' %(bitrate_group_list))
+        self.log_debug('Grouped result list(Removed latest) is:\n%s' %(bitrate_group_list))
         for bitrate_group in bitrate_group_list:
             self.analysis_bitrate_group(bitrate_group)
     
@@ -163,18 +163,21 @@ class LinearBitrateResultTrace():
                 entertainment_request_size += 1
         
         if entertainment_request_size > self.entertainment_number_in_complete_cycle:
-            message = 'Entertainment number in one round is exceeded。 Time window: %s~%s. Entertainment number is %s, larger than %s' \
-                    %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time, entertainment_request_size, self.entertainment_number_in_complete_cycle)
+            message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
+                    %(entertainment_request_size, self.entertainment_number_in_complete_cycle, bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time, )
             self.record_error(message)
         
         if len(ad_url_set) != self.ad_number_in_complete_cycle:
-            message = 'AD number is not as expected. Time window: %s~%s. ad number:%s, expected ad number: %s' \
-                    %(bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,len(ad_url_set), self.ad_number_in_complete_cycle)
+            message = 'AD number is not as expected. Ad number:%s, expected ad number: %s. Time window: %s~%s. ' \
+                    %(len(ad_url_set), self.ad_number_in_complete_cycle, bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,)
             self.record_error(message)
+    
+    def log_debug(self, message):
+        if self.logger: self.logger.debug('%s:%s.' %(self.task.get_client_ip(), message))
     
     def record_error(self, message):
         self.error_list.append(message)
-        if self.logger: self.logger.error('%s:%s. %s' %(self.task.get_client_ip(), message, self.task))
+        if self.logger: self.logger.error('%s:%s.' %(self.task.get_client_ip(), message))
     
 class LinearPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -282,7 +285,7 @@ class LinearPerfTest(VEXPerfTestBase):
                 self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
     
     def analysis_traced_bitrate_response(self):
-        self.logger.info('Analysis traced bitrate reponse. Checked client number is %s' % (self.check_client_ip_dict))
+        self.logger.debug('Analysis traced bitrate reponse. Checked client number is %s' % (self.check_client_ip_dict))
         for client_ip, bitrate_result_trace in self.check_client_ip_dict.items():
             self.do_bitrate_result_trace_check(client_ip, bitrate_result_trace)
     
