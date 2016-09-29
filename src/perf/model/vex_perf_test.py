@@ -342,11 +342,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             while mtries > 1:
                 time.sleep(self.test_client_request_retry_delay)
                 try:
-                    self.logger.debug('Retry index, %s time. task:[%s]' % (retry_count, task))
+                    self.logger.debug('Retry %s, %s time. task:[%s]' % (tag, retry_count, task))
                     response, used_time = self.get_response(task, self.test_client_request_timeout)
                     return response, used_time
                 except Exception, e:
-                    self.logger.error('Retry index failed, %s time. task:[%s]' % (retry_count, task))
+                    self.logger.error('Retry tag failed, %s time. task:[%s]' % (tag, retry_count, task))
                     mtries -= 1
         return response, used_time
     
