@@ -7,7 +7,7 @@ from utility import file_util
 
 class ResultAnalyzer(ResultCollection):
     def __init__(self, config_file, report_dir, collect_traced_data=False, collected_result_before_now=2, **kwargs):
-        #collect_traced_data: whether to download traced bitrate response data to local to do result analysis
+        # collect_traced_data: whether to download traced bitrate response data to local to do result analysis
         super(ResultAnalyzer, self).__init__(config_file, collect_traced_data, collected_result_before_now, **kwargs)
         self.report_dir = report_dir
         self.init_vex_counter()
@@ -38,10 +38,10 @@ class ResultAnalyzer(ResultCollection):
         final_bitrate_report_counter = self._merge_vex_count_list(bitrate_counter_list)
         
         if final_index_report_counter is not None and final_bitrate_report_counter is not None:
-            report_content = final_index_report_counter.dump_counter_info(final_index_report_counter.counter_period, tag=self.index_summary_tag,)
-            report_content += '\n' + final_bitrate_report_counter.dump_counter_info(final_bitrate_report_counter.counter_period, tag=self.bitrate_summary_tag,)
+            report_content = final_index_report_counter.dump_counter_info(final_index_report_counter.counter_period, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
+            report_content += '\n' + final_bitrate_report_counter.dump_counter_info(final_bitrate_report_counter.counter_period, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
             print report_content
-            print 'Export summarized report to %s' %(self.report_dir + os.sep + self.summary_file_name)
+            print 'Export summarized report to %s' % (self.report_dir + os.sep + self.summary_file_name)
             file_util.write_file(self.report_dir, self.summary_file_name, report_content, is_delete=True)
     
     def export_error_data(self):
@@ -55,7 +55,7 @@ class ResultAnalyzer(ResultCollection):
         error_content = self.reorganize_error_data(error_content)
         
         if error_content != '':
-            print 'Export error report to %s' %(self.report_dir + os.sep + self.error_file_name)
+            print 'Export error report to %s' % (self.report_dir + os.sep + self.error_file_name)
             file_util.write_file(self.report_dir, self.error_file_name, error_content, is_delete=True)
     
     def reorganize_error_data(self, error_content):
@@ -77,7 +77,7 @@ class ResultAnalyzer(ResultCollection):
         self.response_time_sum = 0
         self.response_error_total_count = 0
         
-        merged_key_list = ['total_count','succeed_total_count','error_total_count','response_time_sum', 
+        merged_key_list = ['total_count', 'succeed_total_count', 'error_total_count', 'response_time_sum',
                            'response_error_total_count', 'metric_list']
         final_report_counter = counter_list[0]
         for counter in counter_list[1:]:
@@ -87,7 +87,7 @@ class ResultAnalyzer(ResultCollection):
                 
                 if key == 'metric_list':
                     for i, metric in enumerate(value):
-                        #final_report_counter.metric_list[i] is a Metric instance
+                        # final_report_counter.metric_list[i] is a Metric instance
                         final_report_counter.metric_list[i].count += metric.count
                 else:
                     setattr(final_report_counter, key, getattr(final_report_counter, key) + value)

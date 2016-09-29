@@ -91,7 +91,7 @@ class VEXMetricCounter(MetricCounter):
     def get_delta_summary(self):
         return [self.delta_total_count, self.delta_succeed_total_count, self.delta_error_total_count, self.delta_response_sum, self.delta_response_error_total_count, self.delta_metric_list]
     
-    def dump_counter_info(self, counter_period, delta=False, tag='Response summary', is_vod=True):
+    def dump_counter_info(self, counter_period, delta=False, tag='Response summary', export_concurrent_number=True):
         total_count, succeed_total_count, error_total_count, response_time_sum, response_error_count, metric_list = self.get_delta_summary() if delta else self.get_summary()
         
         if total_count == 0:
@@ -100,7 +100,7 @@ class VEXMetricCounter(MetricCounter):
         summary = ''
         summary += '%-24s\n' % (tag)
         summary += '%2s%-22s: %-4s\n' % ('', self.test_duration_tag, counter_period)
-        if is_vod is True: 
+        if export_concurrent_number is True: 
             summary += '%2s%-22s: %-4s\n' % ('', self.test_concurrent_number, total_count/int(counter_period))
         summary += '%2s%-22s: %s\n' % ('', self.total_request_tag, total_count)
         summary += '%2s%-22s: %s\n' % ('', self.succeed_request_tag, succeed_total_count)
@@ -108,7 +108,7 @@ class VEXMetricCounter(MetricCounter):
         summary += '%2s%-22s: %.2f%%\n' % ('', self.succeed_rate_tag, 100 * (float(succeed_total_count) / total_count))
         summary += '%2s%-22s: %s\n' % ('', self.average_response_tag, response_time_sum / succeed_total_count if succeed_total_count != 0 else 0)
         
-        if is_vod is True:
+        if export_concurrent_number is True:
             summary += '%2s%-22s: %s\n' % ('', self.failed_response_tag, response_error_count)
         summary += '%2s%-22s\n' % ('', self.response_time_distribution)
         

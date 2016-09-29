@@ -189,6 +189,8 @@ class LinearPerfTest(VEXPerfTestBase):
         super(LinearPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
+        self.export_concurrent_number = False
+        
         self._set_attr('client_response_asset_tag', 'test')
         self._set_attr('test_type_options', ['LINEAR_T6', 'LINEAR_TVE'])
         self._set_attr('index_url_format', 'http://mm.linear.%s.comcast.net/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&DeviceId=1')

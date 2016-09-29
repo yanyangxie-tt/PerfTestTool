@@ -88,7 +88,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 self.client_response_check_when_running = False
                 self.check_percent_factor = 1000000
             else:    
-                self.check_percent_factor = int(1/self.client_response_check_percent)
+                self.check_percent_factor = int(1 / self.client_response_check_percent)
         else:
             self.check_percent_factor = 1
     
@@ -221,7 +221,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.test_case_concurrent_number = self.test_case_client_number
         
         self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
-        self.logger.info('Test machine client request number is %s. (VOD is concurrent session number. Linear/Cdvr is total session number)' %(self.test_machine_current_request_number))
+        self.logger.info('Test machine client request number is %s. (VOD is concurrent session number. Linear/Cdvr is total session number)' % (self.test_machine_current_request_number))
         
     def setup_processs_concurrent_request_number(self):
         # for multiple process, calculate concurrent request number in one process
@@ -230,7 +230,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             current_number += 1
        
         self.current_processs_concurrent_request_number = current_number
-        self.logger.info('Test process client request number is %s' %(self.current_processs_concurrent_request_number))
+        self.logger.info('Test process client request number is %s' % (self.current_processs_concurrent_request_number))
     
     def setup_test_contents(self):
         # setup all the test content
@@ -244,7 +244,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         else:
             self.logger.info('Test content name is %s' % (self.test_content_name_list[0]))
     
-    def do_index(self, task, ):
+    def do_index(self, task,):
         try:
             self.logger.debug('Execute index: %s' % (str(task)))
             if self._use_fake() is True:
@@ -299,7 +299,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             else:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
             
-            #check or send psn
+            # check or send psn
             self.do_bitrate_other_step(task, response_text)
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error_request=True)
@@ -374,16 +374,16 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def dump_summary_statistical_data(self):
         cost_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
-        index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag=self.index_summary_tag)
-        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag=self.bitrate_summary_tag)
+        index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
+        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
         self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_report_file, time_util.get_local_now()))
         # self.logger.info(statistical_data)
         file_util.write_file(self.test_result_dir, self.test_result_report_file, statistical_data, mode='a', is_delete=True)
     
     def dump_delta_statistical_data(self):
-        index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.index_summary_tag)
-        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.bitrate_summary_tag)
+        index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
+        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
         statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
         
         self.index_counter.clear_delta_metric()
@@ -479,8 +479,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 time.sleep(self.warm_up_time_gap)
                 
                 running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
-                if running_time!= 0 and running_time % 60 == 0:
-                    self.logger.info('Load test has been running %s minute' %(running_time/60))
+                if running_time != 0 and running_time % 60 == 0:
+                    self.logger.info('Load test has been running %s minute' % (running_time / 60))
         self.logger.info('Finish warm-up process')
     
     def dispatch_task_with_max_request(self):
@@ -548,8 +548,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 if running_time >= self.test_case_survival:
                     break
                 
-                if running_time!= 0 and running_time % 60 == 0:
-                    self.logger.info('Load test has been running %s minute' %(running_time/60))
+                if running_time != 0 and running_time % 60 == 0:
+                    self.logger.info('Load test has been running %s minute' % (running_time / 60))
             
             self.logger.info('#' * 100)
             self.logger.info('Reach load test time limitation %s. Shutdown sched and flush statistics info into local file.' % (self.test_case_survival))
