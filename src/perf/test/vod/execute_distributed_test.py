@@ -71,9 +71,6 @@ if __name__ == '__main__':
     if task_name == 'stop':
         distribute_test.execute_task('stop_perf_test')
     elif task_name == 'start':
-        distribute_test.execute_task('rm_perf_test_log')
-        distribute_test.execute_task('start_perf_test')
-    elif task_name == 'restart':
         distribute_test.execute_task('stop_perf_test')
         distribute_test.execute_task('rm_perf_test_log')
         distribute_test.execute_task('start_perf_test')
