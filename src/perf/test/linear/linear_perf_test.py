@@ -259,7 +259,7 @@ class LinearPerfTest(VEXPerfTestBase):
             with self.bitrate_lock:
                 client_ip = task.get_client_ip()
                 if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
-                    self.check_client_ip_dict[client_ip] = LinearBitrateResultTrace(task, self.client_response_ad_frequecy, self.client_response_content_segment_time)
+                    self.check_client_ip_dict[client_ip] = LinearBitrateResultTrace(task, self.client_response_ad_frequecy, self.client_response_content_segment_time, 1 + self.client_response_content_segment_time/self.test_client_bitrate_request_frequency)
                     self.logger.info('Add client %s into checked list. Current check client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
             
             if self.check_client_ip_dict.has_key(client_ip) and task.get_bitrate_url() == self.check_client_ip_dict[client_ip].bitrate_url:

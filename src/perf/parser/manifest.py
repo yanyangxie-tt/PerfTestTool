@@ -96,8 +96,19 @@ class LinearManifestChecker(ManifestPaser):
     
     def ad_data_transform(self):
         self.ad_in_first_postion = True if self.ad_pre_number > 0 else False
-            
+
+class CdvrManifestChecker(ManifestPaser):
+    def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
+        super(CdvrManifestChecker, self).__init__(manifest, request_url, psn_tag, ad_tag, sequence_tag, asset_id_tag)
+        self.parse()
+        self.generate_ad_position_list()
         
+    def generate_ad_position_list(self):
+        if self.ad_pre_number > 0:
+            self.ad_mid_position_list.insert(0, 0)
+        
+        if self.ad_post_number > 0:
+            self.ad_mid_position_list.insert(self.entertainment_ts_number)
 
 class VODManifestChecker(ManifestPaser):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):
