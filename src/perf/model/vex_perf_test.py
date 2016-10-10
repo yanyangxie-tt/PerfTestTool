@@ -91,6 +91,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 self.check_percent_factor = int(1 / self.client_response_check_percent)
         else:
             self.check_percent_factor = 1
+        
+        self.export_concurrent_number = False
     
     def set_component_private_default_value(self):
         # should setup component default parameters
@@ -105,15 +107,19 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.current_process_index = process_index
     
     def init_environment(self):
-        self.init_result_dir()
-        self.init_log(log_file=self.test_result_dir + self.test_result_log_file, log_level=self.log_level, log_name=self.log_name)
-        self.init_vex_counter()
-        self.init_lock()
-        self.init_queue()
-        self.setup_test_machine_conccurent_request_number()
-        self.setup_processs_concurrent_request_number()
-        self.setup_test_contents()
-        self.set_component_private_environment()
+        try:
+            self.init_result_dir()
+            self.init_log(log_file=self.test_result_dir + self.test_result_log_file, log_level=self.log_level, log_name=self.log_name)
+            self.init_vex_counter()
+            self.init_lock()
+            self.init_queue()
+            self.setup_test_machine_conccurent_request_number()
+            self.setup_processs_concurrent_request_number()
+            self.setup_test_contents()
+            self.set_component_private_environment()
+        except Exception, e:
+            print 'Init test environment failed. Error is %s' %(e)
+            exit(1)
     
     def set_component_private_environment(self):
         pass
@@ -152,7 +158,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     def init_queue(self):
         self.task_queue = Queue.Queue(1000)
-        self.bitrate_record_queue = Queue.Queue(10000)
+        #self.bitrate_record_queue = Queue.Queue(10000)
         self.error_record_queue = Queue.Queue(100000)
     
     def init_task_consumer_sched(self):
@@ -267,13 +273,13 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             
             bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random)
             self.schedule_bitrate(task, bitrate_url_list)
-            self.do_index_other_step(task)
+            self.do_index_subsequent_step(task)
             
         except Exception, e:
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
             self.logger.error('Failed to index request. %s' % (e), exc_info=1)
     
-    def do_index_other_step(self, task):
+    def do_index_subsequent_step(self, task):
         pass
     
     def schedule_bitrate(self, task, bitrate_url_list):
@@ -300,12 +306,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
             
             # check or send psn
-            self.do_bitrate_other_step(task, response_text)
+            self.do_bitrate_subsequent_step(task, response_text)
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error_request=True)
             self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
     
-    def do_bitrate_other_step(self, task, response_text):
+    def do_bitrate_subsequent_step(self, task, response_text):
         pass
     
     def _use_fake(self):
@@ -329,8 +335,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         return r, 201, response_text, status_code
     
     def _get_vex_response(self, task, tag='Index'):
-        # get vex response. If failed, retry 'test_client_request_retry_count' times
-        # return response and response time
+        # Get vex response. If failed, retry 'test_client_request_retry_count' times
+        # Return response and response time
         response, used_time = None, 0
         try:
             response, used_time = self.get_response(task, self.test_client_request_timeout)
@@ -373,47 +379,56 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.logger.error("Failed to send normal PSN message. Exception: %s." % (exce_info))
     
     def dump_summary_statistical_data(self):
-        cost_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
-        index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
-        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
-        statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
-        self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_report_file, time_util.get_local_now()))
-        # self.logger.info(statistical_data)
-        file_util.write_file(self.test_result_dir, self.test_result_report_file, statistical_data, mode='a', is_delete=True)
+        try:
+            cost_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
+            index_statistical_data = self.index_counter.dump_counter_info(cost_time, delta=False, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
+            bitrate_statistical_data = self.bitrate_counter.dump_counter_info(cost_time, delta=False, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
+            statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
+            self.logger.info('Export load test report file to %s/%s at %s' % (self.test_result_dir, self.test_result_report_file, time_util.get_local_now()))
+            # self.logger.info(statistical_data)
+            file_util.write_file(self.test_result_dir, self.test_result_report_file, statistical_data, mode='a', is_delete=True)
+        except Exception, e:
+            self.logger.error('Failed to dump summary statistical data. %s' % (e), exc_info=1)
     
     def dump_delta_statistical_data(self):
-        index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
-        bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
-        statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
-        
-        self.index_counter.clear_delta_metric()
-        self.bitrate_counter.clear_delta_metric()
-        
-        delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
-        self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_report_delta_dir, delta_report_file, time_util.get_local_now()))
-        self.logger.info(statistical_data)
-        file_util.write_file(self.test_result_report_delta_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
-        
-        if self._has_attr('psn_count'):
-            with self.psn_lock:
-                self.logger.info('PSN count: %s, endAll PSN count: %s' % (self.psn_count, self.endall_psn_count))
-                self.psn_count, self.endall_psn_count = (0, 0)
+        try:
+            index_statistical_data = self.index_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.index_summary_tag, export_concurrent_number=self.export_concurrent_number)
+            bitrate_statistical_data = self.bitrate_counter.dump_counter_info(self.test_case_counter_dump_interval, delta=True, tag=self.bitrate_summary_tag, export_concurrent_number=self.export_concurrent_number)
+            statistical_data = index_statistical_data + '\n' + bitrate_statistical_data
+            
+            self.index_counter.clear_delta_metric()
+            self.bitrate_counter.clear_delta_metric()
+            
+            delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
+            self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_report_delta_dir, delta_report_file, time_util.get_local_now()))
+            self.logger.info(statistical_data)
+            file_util.write_file(self.test_result_report_delta_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
+            
+            if self._has_attr('psn_count'):
+                with self.psn_lock:
+                    self.logger.info('PSN count: %s, endAll PSN count: %s' % (self.psn_count, self.endall_psn_count))
+                    self.psn_count, self.endall_psn_count = (0, 0)
+        except Exception, e:
+            self.logger.error('Failed to dump delta statistical data. %s' % (e), exc_info=1)
     
     def dump_delta_error_details(self):
-        # to linear and cdvr, need analysis traced data before dump error info, then put the error into to error queue
-        self.analysis_traced_bitrate_response()
-        
-        if self.error_record_queue.empty():
-            return
-        
-        datas = vex_util.get_datas_in_queue(self.error_record_queue)
-        delta_error_file = vex_util.get_timed_file_name(self.test_result_report_error_file)
-        self.logger.info('Export delta error report file to %s/%s at %s' % (self.test_result_report_error_dir, delta_error_file, time_util.get_local_now()))
-        file_util.write_file(self.test_result_report_error_dir, delta_error_file, datas, mode='a', is_delete=True)
+        try:
+            # to linear and cdvr, need analysis traced data before dump error info, then put the error into to error queue
+            self.analysis_traced_bitrate_response()
+            if self.error_record_queue.empty():
+                return
+            
+            datas = vex_util.get_datas_in_queue(self.error_record_queue)
+            delta_error_file = vex_util.get_timed_file_name(self.test_result_report_error_file)
+            self.logger.info('Export delta error report file to %s/%s at %s' % (self.test_result_report_error_dir, delta_error_file, time_util.get_local_now()))
+            file_util.write_file(self.test_result_report_error_dir, delta_error_file, datas, mode='a', is_delete=True)
+        except Exception, e:
+            self.logger.error('Failed to dump error statistical data. %s' % (e), exc_info=1)
     
     def analysis_traced_bitrate_response(self):
         pass
     
+    '''
     def dump_traced_bitrate_contents(self):
         if self.bitrate_record_queue.empty():
             return
@@ -422,15 +437,16 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         delta_traced_file = vex_util.get_timed_file_name(self.test_result_report_traced_file)
         self.logger.info('Export delta traced report file to %s/%s at %s' % (self.test_result_report_traced_dir, delta_traced_file, time_util.get_local_now()))
         file_util.write_file(self.test_result_report_traced_dir, delta_traced_file, datas, mode='a', is_delete=True)
+    '''
      
     def startup_reporter(self):
         if hasattr(self, 'test_case_counter_dump_interval'):
-            self.logger.debug('Dump statistical data while running each %s seconds' % (self.test_case_counter_dump_interval))
+            self.logger.info('Dump statistical data while running each %s seconds' % (self.test_case_counter_dump_interval))
             r_start_date = time_util.get_datetime_after(self.load_test_start_date, delta_seconds=self.test_case_counter_dump_interval)
             self.report_sched.add_interval_job(self.dump_summary_statistical_data, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
             self.report_sched.add_interval_job(self.dump_delta_statistical_data, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
             self.report_sched.add_interval_job(self.dump_delta_error_details, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
-            self.report_sched.add_interval_job(self.dump_traced_bitrate_contents, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
+            #self.report_sched.add_interval_job(self.dump_traced_bitrate_contents, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
         else:
             self.logger.warn('No parameter test.case.counter.dump.interval, not dump statistical data while running')
             
@@ -560,7 +576,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 self.psn_sched.shutdown(False)
             
             self.dump_summary_statistical_data()
-            self.dump_traced_bitrate_contents()
+            #self.dump_traced_bitrate_contents()
             self.dump_delta_error_details()
             self.logger.info('Load test finished at %s' % (time_util.get_local_now()))
         except Exception, e:

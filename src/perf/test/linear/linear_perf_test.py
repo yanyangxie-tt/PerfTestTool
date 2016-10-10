@@ -22,8 +22,7 @@ class LinearPerfTest(VEXPerfTestBase):
         super(LinearPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
-        self.export_concurrent_number = False
-        
+        self._set_attr('export_concurrent_number', False, True)
         self._set_attr('client_response_asset_tag', 'test')
         self._set_attr('test_type_options', test_type_options)
         self._set_attr('index_url_format', index_url_format)
@@ -35,7 +34,7 @@ class LinearPerfTest(VEXPerfTestBase):
         self._set_attr('test_client_bitrate_request_frequency', 2)
         
         self._set_attr('record_client_number', True, True)
-        self.client_number_dict = {}
+        self.alived_client_recorder_dict = {}
         self.check_client_ip_dict = {}
     
     def set_component_private_environment(self):
@@ -56,9 +55,9 @@ class LinearPerfTest(VEXPerfTestBase):
     def _supply_request_to_max_client(self):
         try:
             with self.index_lock:
-                if len(self.client_number_dict) < self.current_processs_concurrent_request_number:
-                    self.logger.debug('Supply: running test client number is %s, less than the expected %s, supply it.' % (len(self.client_number_dict), self.current_processs_concurrent_request_number))
-                    gap = self.current_processs_concurrent_request_number - len(self.client_number_dict)
+                if len(self.alived_client_recorder_dict) < self.current_processs_concurrent_request_number:
+                    self.logger.debug('Supply: running test client number is %s, less than the expected %s, supply it.' % (len(self.alived_client_recorder_dict), self.current_processs_concurrent_request_number))
+                    gap = self.current_processs_concurrent_request_number - len(self.alived_client_recorder_dict)
                     for i in range(0, gap):
                         task = self.task_queue.get(True, timeout=10)
                         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
@@ -69,9 +68,14 @@ class LinearPerfTest(VEXPerfTestBase):
             self.logger.fatal(e)
             exit(1)
     
-    def do_index_other_step(self, task):
+    def do_index_subsequent_step(self, task):
         # To linear and cdvr, record its client ip to do check and supply with max client
-        self.client_number_dict[task.get_client_ip()] = task
+        self.alived_client_recorder_dict[task.get_client_ip()] = task
+        
+        client_ip = task.get_client_ip()
+        if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
+            self.check_client_ip_dict[client_ip] = None
+            self.logger.info('Add client %s into check list. Current checked client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
     
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):
@@ -83,7 +87,7 @@ class LinearPerfTest(VEXPerfTestBase):
             self.logger.debug('Schedule bitrate interval request at %s, interval is %s. task:%s' % (start_date, self.test_client_bitrate_request_frequency, b_task))
             self.task_consumer_sched.add_interval_job(self.do_bitrate, start_date=start_date, seconds=self.test_client_bitrate_request_frequency, args=(b_task,))
     
-    def do_bitrate_other_step(self, task, response_text):
+    def do_bitrate_subsequent_step(self, task, response_text):
         checker = None
         if not self._has_attr('client_response_check_when_running') is True and not self._has_attr('send_psn_message') is True:
             return
@@ -91,9 +95,8 @@ class LinearPerfTest(VEXPerfTestBase):
         if self._has_attr('client_response_check_when_running'):
             with self.bitrate_lock:
                 client_ip = task.get_client_ip()
-                if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
+                if self.check_client_ip_dict.has_key(client_ip) and self.check_client_ip_dict[client_ip] is None:
                     self.check_client_ip_dict[client_ip] = LinearBitrateResultTrace(task, self.client_response_ad_frequecy, self.client_response_content_segment_time, 1 + self.client_response_content_segment_time / self.test_client_bitrate_request_frequency)
-                    self.logger.info('Add client %s into checked list. Current check client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
             
             if self.check_client_ip_dict.has_key(client_ip) and task.get_bitrate_url() == self.check_client_ip_dict[client_ip].bitrate_url:
                 checker = LinearManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)

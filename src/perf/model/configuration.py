@@ -47,6 +47,8 @@ class Configurations(object):
                 p_value = [self._transform_numeric_type(value)  for value in string.split(p_value, self.list_sep)]
             elif p_value and string.lower(p_value) == 'true':
                 p_value = True
+            elif p_value and string.lower(p_value) == 'false':
+                p_value = False
             else:
                 p_value = self._transform_numeric_type(p_value)
 

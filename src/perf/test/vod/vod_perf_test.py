@@ -6,6 +6,9 @@ from perf.model.vex_perf_test import VEXPerfTestBase
 from perf.parser.manifest import VODManifestChecker
 from utility import time_util
 
+test_type_options = ['VOD_T6', 'OTHER:VOD']
+index_url_format = 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
         '''
@@ -16,10 +19,10 @@ class VODPerfTest(VEXPerfTestBase):
         super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
-        self.export_concurrent_number = True
+        self._set_attr('export_concurrent_number', True, True)
         self._set_attr('client_response_asset_tag', 'vod')
-        self._set_attr('test_type_options', ['VOD_T6', 'OTHER:VOD'])
-        self._set_attr('index_url_format', 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z')
+        self._set_attr('test_type_options', test_type_options)
+        self._set_attr('index_url_format', index_url_format)
         self._set_attr('warm_up_time_gap', 1)  # in warm up stage, time gap in each requests bundle 
         self._set_attr('test_require_sap', False)
         self._set_attr('fake_file_dir', os.path.dirname(os.path.realpath(__file__)))
@@ -38,7 +41,7 @@ class VODPerfTest(VEXPerfTestBase):
             self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
             self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
     
-    def do_bitrate_other_step(self, task, response_text):
+    def do_bitrate_subsequent_step(self, task, response_text):
         if self._has_attr('send_psn_message') is False and self._has_attr('client_response_check_when_running') is False:
             return
         

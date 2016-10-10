@@ -1929,4 +1929,3 @@ http://172.31.13.238:8089/origin/playlists/friends_ad_iframe_08.ts
 http://172.31.13.238:8089/origin/playlists/friends_ad_iframe_09.ts
 #EXTINF:6.0,
 http://172.31.13.238:8089/origin/playlists/friends_ad_iframe_10.ts
-#EXT-X-ENDLIST
