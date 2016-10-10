@@ -82,16 +82,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         else:
             self.ip_segment_range = [i for i in range(0, 256)]
         
-        if hasattr(self, 'client_response_check_percent'):
-            self.client_response_check_percent = float(self.client_response_check_percent)
-            if self.client_response_check_percent <= 0 or self.client_response_check_percent > 1:
-                self.client_response_check_when_running = False
-                self.check_percent_factor = 1000000
-            else:    
-                self.check_percent_factor = int(1 / self.client_response_check_percent)
-        else:
-            self.check_percent_factor = 1
-        
+        self.client_response_check_percent = float(self.client_response_check_percent)
         self.export_concurrent_number = False
     
     def set_component_private_default_value(self):

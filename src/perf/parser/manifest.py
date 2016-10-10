@@ -123,7 +123,7 @@ class VODManifestChecker(ManifestPaser):
         message = None
         while True:
             if self.has_asset_id is not True:
-                message = 'Not found same asset id from manifest. url:%s, manifest:%s' % (self.request_url, self.manifest)
+                message = 'Not found same asset id from manifest. url:%s' % (self.request_url)
                 break
             elif self.sequence_number != media_sequence_number:
                 message = 'Manifest media sequence number is %s, not the same as expected number %s' % (self.sequence_number, media_sequence_number)

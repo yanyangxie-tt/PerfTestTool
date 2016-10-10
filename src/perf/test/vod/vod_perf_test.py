@@ -26,6 +26,16 @@ class VODPerfTest(VEXPerfTestBase):
         self._set_attr('warm_up_time_gap', 1)  # in warm up stage, time gap in each requests bundle 
         self._set_attr('test_require_sap', False)
         self._set_attr('fake_file_dir', os.path.dirname(os.path.realpath(__file__)))
+        
+        if hasattr(self, 'client_response_check_percent'):
+            self.client_response_check_percent = float(self.client_response_check_percent)
+            if self.client_response_check_percent <= 0 or self.client_response_check_percent > 1:
+                self.client_response_check_when_running = False
+                self.check_percent_factor = 1000000
+            else:    
+                self.check_percent_factor = int(1 / self.client_response_check_percent)
+        else:
+            self.check_percent_factor = 1
     
     def generate_index_url(self):
         content_name = self._get_random_content()
@@ -46,12 +56,16 @@ class VODPerfTest(VEXPerfTestBase):
             return
         
         self.logger.debug('Bitrate response for task[%s]:\n%s' % (task, response_text,))
-        checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)
         
-        if self._has_attr('client_response_check_when_running') is True:
+        checker = None
+        if self._has_attr('client_response_check_when_running') is True and self.bitrate_counter.total_count % self.check_percent_factor == 0:
+            checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)
             self.check_response(task, checker)
         
         if self._has_attr('send_psn_message') is True:
+            if checker is None:
+                checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)
+            
             psn_gap_list = [1 + int(self.client_response_content_segment_time * self.client_response_ad_mid_roll_ts_number * float(i)) for i in self.psn_message_sender_position]
             if self._has_attr('psn_send') is True:
                 self.send_psn(task, checker.psn_tracking_position_id_dict, psn_gap_list)
@@ -62,10 +76,6 @@ class VODPerfTest(VEXPerfTestBase):
                 self.send_endall_psn(task)
         
     def check_response(self, task, manifest_checker):
-        with self.bitrate_lock:
-            if self.bitrate_counter.total_count % self.check_percent_factor != 0:
-                return
-        
         self.logger.debug('Check bitrate client response. task: %s' % (task))
         error_message = manifest_checker.check(self.client_response_media_sequence, self.client_response_content_segment_number,
                 self.client_response_endlist_tag, self.client_response_drm_tag, self.client_response_ad_mid_roll_position, self.client_response_ad_pre_roll_ts_number,
