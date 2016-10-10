@@ -26,7 +26,7 @@ class CdvrBitrateResult():
         self.exist_ad = True if self.ad_number > 0 else False
     
     def __repr__(self):
-        return '%s[%s]:entertainment number:%-2s, ad number:%-2s, ad position:-10%s' \
+        return '%s[%s]:entertainment number:%-2s, ad number:%-2s, ad position:%-10s' \
             % (self.task.get_client_ip(), self.request_time, self.entertainment_number, self.ad_number, self.ad_position_list)
 
 class CdvrBitrateResultTrace():
@@ -99,6 +99,11 @@ class CdvrBitrateResultTrace():
         ad_number = bitrate_recorder.ad_number
         ad_position_list = bitrate_recorder.ad_position_list
         
+        if entertainment_number > self.content_max_segment_number:
+            message = 'Recording has %s entertainment ts, more than expected max entertainment ts number %s.' \
+                    % (self.content_max_segment_number, entertainment_number)
+            self.record_error(message)
+        
         if len(ad_position_list) == 0:
             if entertainment_number > self.entertainment_number_in_ad_gap:
                 # 已经运行了，但是还没发现ad
@@ -110,7 +115,7 @@ class CdvrBitrateResultTrace():
             first_ad_position = ad_position_list[0]
             expected_ad_number = self.ad_number_in_complete_cycle * (1 + ((entertainment_number - first_ad_position) / self.entertainment_number_in_ad_gap))
             if ad_number != expected_ad_number:
-                message = 'Recording has %s entertainment ts, first ad position is %s, ad number is %s, not as expected %s. ad positions:[]' \
+                message = 'Recording has %s entertainment ts, first ad position is %s, ad number is %s, not as expected %s. ad positions:%s' \
                     % (entertainment_number, first_ad_position, ad_number, expected_ad_number, ad_position_list)
                 self.record_error(message)
             

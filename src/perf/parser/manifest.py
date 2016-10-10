@@ -108,7 +108,7 @@ class CdvrManifestChecker(ManifestPaser):
             self.ad_mid_position_list.insert(0, 0)
         
         if self.ad_post_number > 0:
-            self.ad_mid_position_list.insert(self.entertainment_ts_number)
+            self.ad_mid_position_list.append(self.entertainment_ts_number)
 
 class VODManifestChecker(ManifestPaser):
     def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_'):

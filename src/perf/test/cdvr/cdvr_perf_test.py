@@ -78,7 +78,7 @@ class CdvrPerfTest(VEXPerfTestBase):
                         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=100)
                         task.set_start_date(start_date)
                         self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
-                        self.logger.info('Supply: add %s task to test. task:%s' % (i + 1, task))
+                        self.logger.debug('Supply: add %s task to test. task:%s' % (i + 1, task))
         except Exception, e:
             self.logger.fatal(e)
             exit(1)
@@ -90,7 +90,7 @@ class CdvrPerfTest(VEXPerfTestBase):
         client_ip = task.get_client_ip()
         if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
             self.check_client_ip_dict[client_ip] = None
-            self.logger.info('Add client %s into check list. Current checked client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
+            self.logger.debug('Add client %s into check list. Current checked client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
     
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):
@@ -136,7 +136,7 @@ class CdvrPerfTest(VEXPerfTestBase):
                     if is_fixed_recording is True:
                         # if a recording is to end, mark it as fixed recording for future check 
                         result_trace.fixed()
-                self.logger.debug('Store bitrate response. %s' % (bitrate_result))
+                self.logger.info('Store bitrate response. %s' % (bitrate_result))
         
         if self._has_attr('send_psn_message') is True:
             if checker is None:
@@ -179,7 +179,7 @@ class CdvrPerfTest(VEXPerfTestBase):
         
         if bitrate_result_trace.is_fixed is True or bitrate_result_trace.validated is True:
             self.check_client_ip_dict.pop(client_ip)
-            self.logger.info('Client %s has been checked, remove it from check list. Current check list size is %s' %(client_ip, len(self.check_client_ip_dict)))
+            self.logger.debug('Client %s has been checked, remove it from check list. Current check list size is %s' %(client_ip, len(self.check_client_ip_dict)))
     
     def _generate_job_name(self, task):
         m = hashlib.md5()
