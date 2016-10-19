@@ -1,7 +1,6 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@gmail.com
 
-import json
 import os
 import string
 import sys

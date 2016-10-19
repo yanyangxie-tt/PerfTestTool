@@ -91,6 +91,9 @@ if __name__ == '__main__':
     json_data = json.dumps({"c": 0, "b": 0, "a": 0})
     connect.execute_with_values("insert into user values(%s,%s)", [('json', json_data),])
     
+    dict_str = str({'x':'2', 'y':1})
+    connect.execute_with_values("insert into user values(%s,%s)", [('dict_str', dict_str),])
+    
     print '#' * 100
     connect.execute("select * from user;")
     print connect.count()
