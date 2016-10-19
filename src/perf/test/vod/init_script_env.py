@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../.."))
 
 here = os.path.dirname(os.path.realpath(__file__))
-config_sub_folder = sys.argv[1] if len(sys.argv) > 1 else ''
+config_sub_folder = sys.argv[2] if len(sys.argv) > 2 else ''
 config_file = here + os.sep + config_sub_folder + 'config.properties'
 golden_config_file = here + os.sep + config_sub_folder + 'config-golden.properties'
 
