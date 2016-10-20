@@ -24,7 +24,7 @@ class ResultCollection(DistributeEnv):
         super(ResultCollection, self).__init__(config_file, **kwargs)
         
         self.collect_traced_data = collect_traced_data
-        self.collected_result_before_now=collected_result_before_now
+        self.collected_result_before_now=collected_result_before_now if not hasattr(self, 'test_result_collect_before_now') else self.test_result_collect_before_now
         self.perf_test_machine_group = 'perf_test_machines'
         
         self.vex_tmp_dir = '/tmp'

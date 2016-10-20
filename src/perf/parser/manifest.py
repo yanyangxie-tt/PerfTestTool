@@ -137,17 +137,17 @@ class VODManifestChecker(ManifestPaser):
             elif self.manifest.find(drm_tag) < 0:
                 message = 'Manifest has not drm tag %s' % (drm_tag)
                 break
-            elif self.ad_mid_position_list != ad_mid_position_list:
-                message = 'Manifest ad positions is %s, not the same as expected %s' % (self.ad_mid_position_list, ad_mid_position_list)
-                break
             elif self.ad_pre_number != ad_pre_number:
-                message = 'Manifest ad preroll number number is %s, not the same as expected number %s' % (self.ad_pre_number, ad_pre_number)
+                message = 'Manifest ad pre-roll number is %s, not the same as expected number %s' % (self.ad_pre_number, ad_pre_number)
+                break
+            elif self.ad_mid_position_list != ad_mid_position_list:
+                message = 'Manifest ad mid-roll positions is %s, not the same as expected %s' % (self.ad_mid_position_list, ad_mid_position_list)
                 break
             elif self.ad_mid_number != ad_mid_number:
-                message = 'Manifest ad midroll number number is %s, not the same as expected number %s' % (self.ad_mid_number, ad_mid_number)
+                message = 'Manifest ad mid-roll position is right, but number is %s, not the same as expected number %s' % (self.ad_mid_number, ad_mid_number)
                 break
             elif self.ad_post_number != ad_post_number:
-                message = 'Manifest ad postroll number number is %s, not the same as expected number %s' % (self.ad_post_number, ad_post_number)
+                message = 'Manifest ad post-roll number is %s, not the same as expected number %s' % (self.ad_post_number, ad_post_number)
                 break
             elif self.request_url.find(iframe_tag) > 0 and self.manifest.find(ad_iframe_tag) < 0:
                 message = 'Manifest has not ad iframe tag %s, but %s is found in url %s' % (ad_iframe_tag, iframe_tag, self.request_url)
