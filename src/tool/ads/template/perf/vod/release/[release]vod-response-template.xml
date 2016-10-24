@@ -1,0 +1,358 @@
+<?xml version="1.0"?>
+<adm:PlacementResponse xmlns:ns18="http://www.thistech.com/schemas/1_0/opportunity" xmlns:cmcst="http://www.thistech.com/schemas/1_01231/spot link"  xmlns:title="urn:cablelabs:md:xsd:title:3.0" xmlns:terms="urn:cablelabs:md:xsd:terms:3.0" xmlns:content="urn:cablelabs:md:xsd:content:3.0" xmlns:offer="urn:cablelabs:md:xsd:offer:3.0" xmlns:signaling="urn:cablelabs:md:xsd:signaling:3.0" xmlns:po="urn:cablelabs:md:xsd:placementopportunity:3.0" xmlns:adi3="urn:cablelabs:md:xsd:core:3.0" xmlns:pois="http://www.scte.org/schemas/130-5/2010/pois" xmlns:tbtv="http://www.tandbergtv.com/schemas/130-ext/2008a/ext" xmlns:gis="http://www.scte.org/schemas/130-8/2010a/gis" xmlns:podm="http://www.scte.org/schemas/130-3/2008a/adm/podm" xmlns:slr="http://www.thistech.com/schemas/1_0/spot link" xmlns:vmap="http://www.iab.net/vmap-1.0" xmlns:core="http://www.scte.org/schemas/130-2/2008a/core" xmlns:adm="http://www.scte.org/schemas/130-3/2008a/adm" xmlns:cmcp1="http://www.comcast.com/schemas/NGOD/P1/2012/R1V0" messageRef="request-message-ref-id" messageId="response-message-id" version="1.1" identity="1ea15585-1075-4833-86c6-9321695b5ce5" system="spotlink-auditude-support">
+    <core:StatusCode class="0" />
+    <adm:PlacementDecision id="V3dVSDRQSmlFZU9vL0JEZHNkdmYzUT01" placementOpportunityRef="request-poid">
+        <adm:OpportunityBinding opportunityType="preRoll" opportunityNumber="1" />
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="1" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_1.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="2" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_2.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="3" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_3.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+    </adm:PlacementDecision>
+    <adm:PlacementDecision id="V3dVdTh2SmlFZU9vL0JEZHNkdmYzUT02">
+        <adm:Entertainment>
+            <core:Content>
+                <core:AssetRef providerID="xidio" assetID="04a436853d442f7edb27c9382146f9ec" />
+            </core:Content>
+            <adm:EntertainmentNPT scale="1.0">0.000-450.000</adm:EntertainmentNPT>
+        </adm:Entertainment>
+        <core:Ext>
+            <cmcp1:PlayPositions>
+                <cmcp1:PlayPositionStart>
+                    <cmcp1:NPTOffset>0.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionStart>
+                <cmcp1:PlayPositionEnd>
+                    <cmcp1:NPTOffset>450.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionEnd>
+            </cmcp1:PlayPositions>
+        </core:Ext>
+    </adm:PlacementDecision>    
+    <adm:PlacementDecision id="V3dWV0FQSmlFZU9vL0JEZHNkdmYzUT02" placementOpportunityRef="request-poid">
+        <adm:OpportunityBinding opportunityType="private:midRoll" opportunityNumber="3" />
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT08" action="fill" position="1" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_1.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="2" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_2.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT10" action="fill" position="3" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_3.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+    </adm:PlacementDecision>
+    <adm:PlacementDecision id="V3dVdTh2SmlFZU9vL0JEZHNkdmYzUT03">
+        <adm:Entertainment>
+            <core:Content>
+                <core:AssetRef providerID="xidio" assetID="04a436853d442f7edb27c9382146f9ec" />
+            </core:Content>
+            <adm:EntertainmentNPT scale="1.0">450.000-900.000</adm:EntertainmentNPT>
+        </adm:Entertainment>
+        <core:Ext>
+            <cmcp1:PlayPositions>
+                <cmcp1:PlayPositionStart>
+                    <cmcp1:NPTOffset>450.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionStart>
+                <cmcp1:PlayPositionEnd>
+                    <cmcp1:NPTOffset>900.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionEnd>
+            </cmcp1:PlayPositions>
+        </core:Ext>
+    </adm:PlacementDecision>    
+    <adm:PlacementDecision id="V3dWV0FQSmlFZU9vL0JEZHNkdmYzUT03" placementOpportunityRef="request-poid">
+        <adm:OpportunityBinding opportunityType="private:midRoll" opportunityNumber="3" />
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="1" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_1.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="2" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_2.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT12" action="fill" position="3" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_3.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+    </adm:PlacementDecision>
+    <adm:PlacementDecision id="V3dVdTh2SmlFZU9vL0JEZHNkdmYzUT04">
+        <adm:Entertainment>
+            <core:Content>
+                <core:AssetRef providerID="xidio" assetID="04a436853d442f7edb27c9382146f9ec" />
+            </core:Content>
+            <adm:EntertainmentNPT scale="1.0">900.000-1350.000</adm:EntertainmentNPT>
+        </adm:Entertainment>
+        <core:Ext>
+            <cmcp1:PlayPositions>
+                <cmcp1:PlayPositionStart>
+                    <cmcp1:NPTOffset>900.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionStart>
+                <cmcp1:PlayPositionEnd>
+                    <cmcp1:NPTOffset>1350.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionEnd>
+            </cmcp1:PlayPositions>
+        </core:Ext>
+    </adm:PlacementDecision>    
+    <adm:PlacementDecision id="V3dWV0FQSmlFZU9vL0JEZHNkdmYzUT04" placementOpportunityRef="request-poid">
+        <adm:OpportunityBinding opportunityType="private:midRoll" opportunityNumber="3" />
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="1" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_1.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="2" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_2.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT13" action="fill" position="3" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_3.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+    </adm:PlacementDecision>
+    <adm:PlacementDecision id="VzJBZ01QSmlFZU9vL0JEZHNkdmYzUT05">
+        <adm:Entertainment>
+            <core:Content>
+                <core:AssetRef providerID="xidio" assetID="04a436853d442f7edb27c9382146f9ec" />
+            </core:Content>
+            <adm:EntertainmentNPT scale="1.0">1350.000-</adm:EntertainmentNPT>
+        </adm:Entertainment>
+        <core:Ext>
+            <cmcp1:PlayPositions>
+                <cmcp1:PlayPositionStart>
+                    <cmcp1:NPTOffset>1350.000</cmcp1:NPTOffset>
+                </cmcp1:PlayPositionStart>
+            </cmcp1:PlayPositions>
+        </core:Ext>
+    </adm:PlacementDecision>
+    <adm:PlacementDecision id="VzJBZ01mSmlFZU9vL0JEZHNkdmYzUT05" placementOpportunityRef="request-poid">
+        <adm:OpportunityBinding opportunityType="postRoll" opportunityNumber="7" />
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="1" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_1.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT09" action="fill" position="2" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_2.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC2@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+        <adm:Placement id="V3dVSDR2SmlFZU9vL0JEZHNkdmYzUT15" action="fill" position="3" type="private:vastLinearExt">
+            <core:Content>
+                <core:ContentLocation contentType="application/x-mpegURL">http://release.vod.comcast.net/adRedirect/espn_ad_3.m3u8@adseed</core:ContentLocation>
+                <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+                <core:Duration>PT0H1M0S</core:Duration>
+                <core:Tracking>tracking-id</core:Tracking>
+                <core:Ext />
+            </core:Content>
+            <PlacementConstraints>
+                <core:Ext>
+                    <cmcst:PlacementConstraintsExt>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="2">Always</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="fastForward" scale="3">4</cmcst:TrickModeRestriction>
+                        <cmcst:TrickModeRestriction trickMode="pause">Always</cmcst:TrickModeRestriction>
+                    </cmcst:PlacementConstraintsExt>
+                </core:Ext>
+            </PlacementConstraints>
+        </adm:Placement>
+    </adm:PlacementDecision>
+</adm:PlacementResponse>

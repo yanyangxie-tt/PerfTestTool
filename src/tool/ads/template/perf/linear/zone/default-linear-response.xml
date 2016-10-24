@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<adm:PlacementResponse xmlns:cis="http://www.scte.org/schemas/130-4/2008a/cis"
+        xmlns:mmopp="http://www.thistech.com/schemas/1_0/opportunity"
+        xmlns:adi="http://www.cablelabs.com/schemas/2006-05-05/adi1_1"
+        xmlns:title="urn:cablelabs:md:xsd:title:3.0" xmlns:terms="urn:cablelabs:md:xsd:terms:3.0"
+        xmlns:content="urn:cablelabs:md:xsd:content:3.0" xmlns:offer="urn:cablelabs:md:xsd:offer:3.0"
+        xmlns:podm="http://www.scte.org/schemas/130-3/2008a/adm/podm" xmlns:po="urn:cablelabs:md:xsd:placementopportunity:3.0"
+        xmlns:adi3="urn:cablelabs:md:xsd:core:3.0" xmlns:signaling="urn:cablelabs:md:xsd:signaling:3.0"
+        xmlns:gis="http://www.scte.org/schemas/130-8/2010a/gis" xmlns:pois="http://www.scte.org/schemas/130-5/2010/pois"
+        xmlns:ns6="http://www.tandbergtv.com/schemas/130-ext/2008a/ext"
+        xmlns:slr="http://www.thistech.com/schemas/1_0/spotlink" xmlns:core="http://www.scte.org/schemas/130-2/2008a/core"
+        xmlns:adm="http://www.scte.org/schemas/130-3/2008a/adm" xmlns:cmcp1="http://www.comcast.com/schemas/NGOD/P1/2012/R1V0"
+        messageRef="request-message-ref-id" messageId="dff246c5-d87b-11e2-9598-06a049fdf667"
+        version="1.1" identity="VEX_28AB9D4D-9C5C-4E11-AC0A-D1995887E02F"
+        system="vex">
+    <core:StatusCode class="0" />
+    <adm:PlacementDecision id="pd-zone-default" placementOpportunityRef="request-poid">
+        <adm:Placement id="V3dWV0F2SmlFZU9vL0JEZHNkdmYzUT09" action="replace" position="1" type="private:vastLinearExt">
+          <core:Content>
+            <core:ContentLocation contentType="application/x-mpegURL">http://ccr.vod.comcast.net/adRedirect/espn_ad_1.m3u8@adseed</core:ContentLocation>
+            <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+            <core:Duration>PT0H0M30S</core:Duration>
+            <core:Tracking>tracking-id</core:Tracking>
+            <core:Ext> 
+              <VideoClicks> 
+              <ClickThrough id="FWc_1954900.0"><![CDATA[http://297767.rong.fwmrm.net/ad/l/1?s=b035&amp;n=171224&amp;t=1368810354780594013&amp;adid=1954900&amp;reid=1358015&amp;arid=0&amp;auid=&amp;cn=defaultClick&amp;et=c&amp;_cc=&amp;tpos=0&amp;cr=http%3A//www.sony.com]]></ClickThrough> 
+              </VideoClicks> 
+            </core:Ext> 
+          </core:Content>
+          <core:Ext>
+            <CompanionAds required="none">
+              <Companion adSlotID="300x60companion" height="60" id="FWa_1954902.0" width="300"> 
+                <StaticResource creativeType="image/jpeg"><![CDATA[http://video.nbcuni.com/ads/image/klondike_300x60_v3.jpg]]></StaticResource>  
+                <TrackingEvents>
+                  <Tracking event="creativeView" id="FWs_1954902.0"><![CDATA[http://29773.v.fwmrm.net/ad/l/1?s=b035&amp;n=171224&amp;t=1368810354780594013&amp;adid=1954902&amp;reid=1358007&amp;arid=0&amp;auid=&amp;cn=defaultImpression&amp;et=i&amp;_cc=1954902,1358007,,,1368810354,1&amp;tpos=&amp;init=1&amp;cr=]]></Tracking> 
+                </TrackingEvents>  
+                <CompanionClickThrough id="FWc_1954902.0"><![CDATA[http://29773.v.fwmrm.net/ad/l/1?s=b035&amp;n=171224&amp;t=1368810354780594013&amp;adid=1954902&amp;reid=1358007&amp;arid=0&amp;auid=&amp;cn=defaultClick&amp;et=c&amp;_cc=&amp;tpos=&amp;cr=http%3A//www.google.com]]></CompanionClickThrough> 
+              </Companion>  
+            </CompanionAds> 
+          </core:Ext>
+        </adm:Placement>
+        <adm:Placement id="V3dWV0F2SmlFZU9vL0JEZHNkdmYzUT09" action="replace" position="2" type="private:vastLinearExt">
+          <core:Content>
+            <core:ContentLocation contentType="application/x-mpegURL">http://ccr.vod.comcast.net/adRedirect/espn_ad_2.m3u8@adseed</core:ContentLocation>
+             <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+             <core:Duration>PT0H0M30S</core:Duration>
+            <core:Tracking>tracking-id</core:Tracking>
+            <core:Ext/>
+          </core:Content>
+        </adm:Placement>
+        <adm:Placement id="V3dWV0F2SmlFZU9vL0JEZHNkdmYzUT09" action="replace" position="3" type="private:vastLinearExt">
+          <core:Content>
+            <core:ContentLocation contentType="application/x-mpegURL">http://ccr.vod.comcast.net/adRedirect/espn_ad_3.m3u8@adseed</core:ContentLocation>
+             <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+             <core:Duration>PT0H0M30S</core:Duration>
+            <core:Tracking>tracking-id</core:Tracking>
+            <core:Ext/>
+          </core:Content>
+        </adm:Placement>
+        <adm:Placement id="V3dWV0F2SmlFZU9vL0JEZHNkdmYzUT09" action="replace" position="4" type="private:vastLinearExt">
+          <core:Content>
+            <core:ContentLocation contentType="application/x-mpegURL">http://ccr.vod.comcast.net/adRedirect/espn_ad_4.m3u8@adseed</core:ContentLocation>
+             <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+             <core:Duration>PT0H0M30S</core:Duration>
+            <core:Tracking>tracking-id</core:Tracking>
+            <core:Ext/>
+          </core:Content>
+        </adm:Placement>
+        <adm:Placement id="V3dWV0F2SmlFZU9vL0JEZHNkdmYzUT09" action="replace" position="4" type="private:vastLinearExt">
+          <core:Content>
+            <core:ContentLocation contentType="application/x-mpegURL">http://ccr.vod.comcast.net/adRedirect/espn_ad_5.m3u8@adseed</core:ContentLocation>
+            <core:AssetRef providerID="scrippsnetworks.com" assetID="HDCC@adseed"/>
+            <core:Duration>PT0H0M30S</core:Duration>
+            <core:Tracking>tracking-id</core:Tracking>
+            <core:Ext/>
+          </core:Content>
+        </adm:Placement>
+    </adm:PlacementDecision>
+</adm:PlacementResponse>

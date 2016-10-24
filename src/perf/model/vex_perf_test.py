@@ -58,6 +58,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         
         self._set_attr('test_bitrate_request_number', 1)
         self._set_attr('test_bitrate_request_random', True)
+        self._set_attr('test_bitrate_request_range', None)
         self._set_attr('test_bitrate_serial', False)
         self._set_attr('test_bitrate_serial_time', 300)
         
@@ -262,7 +263,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=False)
             self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
-            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random)
+            bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random, bitrate_range=self.test_bitrate_request_range)
             self.schedule_bitrate(task, bitrate_url_list)
             self.do_index_subsequent_step(task)
             

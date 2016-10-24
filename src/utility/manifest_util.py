@@ -4,7 +4,7 @@
 import random
 import re
 
-def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=True, sap_required=False, random_bitrate=True):
+def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=True, sap_required=False, random_bitrate=True, bitrate_range=None):
     '''
     Get bitrate URL list
     @param index_response:
@@ -43,12 +43,17 @@ def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=
     
     if sap_required is True and len(sap_url_list) == 0:
         return []
+    else:
+        random.shuffle(sap_url_list)
+    
+    if bitrate_range is not None and 0 < bitrate_range < len(bite_url_list):
+        bite_url_list = bite_url_list[0: bitrate_range]
     
     if sap_required is True:
         random.shuffle(bite_url_list)
         bite_url_list.insert(0, sap_url_list[0])
     else:
-        bite_url_list.extend(sap_url_list)
+        bite_url_list.append(sap_url_list[0])
         random.shuffle(bite_url_list)
         
     bite_url_list = bite_url_list[0:bitrate_number] if len(bite_url_list) > bitrate_number else bite_url_list

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:PlacementResponse xmlns:adm="http://www.scte.org/schemas/130-3/2008a/adm" xmlns:ns18="http://www.thistech.com/schemas/1_0/opportunity" xmlns:title="urn:cablelabs:md:xsd:title:3.0" xmlns:terms="urn:cablelabs:md:xsd:terms:3.0" xmlns:content="urn:cablelabs:md:xsd:content:3.0" xmlns:offer="urn:cablelabs:md:xsd:offer:3.0" xmlns:signaling="urn:cablelabs:md:xsd:signaling:3.0" xmlns:po="urn:cablelabs:md:xsd:placementopportunity:3.0" xmlns:adi3="urn:cablelabs:md:xsd:core:3.0" xmlns:pois="http://www.scte.org/schemas/130-5/2010/pois" xmlns:vmap="http://www.iab.net/vmap-1.0" xmlns:tbtv="http://www.tandbergtv.com/schemas/130-ext/2008a/ext" xmlns:slr="http://www.thistech.com/schemas/1_0/spotlink" xmlns:gis="http://www.scte.org/schemas/130-8/2010a/gis" xmlns:podm="http://www.scte.org/schemas/130-3/2008a/adm/podm" xmlns:core="http://www.scte.org/schemas/130-2/2008a/core" xmlns:cmcp1="http://www.comcast.com/schemas/NGOD/P1/2012/R1V0" messageRef="request-message-ref-id" messageId="response-message-id" version="1.1" identity="1ea15585-1075-4833-86c6-9321695b5ce4" system="spotlink-core-support">
+  <core:StatusCode class="0"/>
+  <adm:PlacementDecision id="9eaba921-6eba-11e4-9498-5254009fa622" placementOpportunityRef="request-poid">
+    <adm:Entertainment>
+      <core:Content>
+        <core:URI>http://172.31.10.11:8080/origin/playlists/espn/index.m3u8</core:URI>
+        <core:ContentLocation type="application/m3u8+xml" abrFormat="HLS">http://172.31.10.11:8080/origin/playlists/espn/index.m3u8</core:ContentLocation>
+      </core:Content>
+      <core:Ext>
+        <cmcp1:PlayPositions>
+          <cmcp1:PlayPositionStart>
+            <cmcp1:SignalId>BLACKOUT:906a4270-62f5-11e4-b177-029b2338e520</cmcp1:SignalId>
+          </cmcp1:PlayPositionStart>
+        </cmcp1:PlayPositions>
+      </core:Ext>
+    </adm:Entertainment>
+  </adm:PlacementDecision>
+</adm:PlacementResponse>
+

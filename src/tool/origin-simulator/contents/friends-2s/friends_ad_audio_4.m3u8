@@ -1,0 +1,16 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-MEDIA-SEQUENCE:18
+#EXT-X-TARGETDURATION:6
+#EXT-X-ALLOW-CACHE:NO
+#EXTINF:6.0,
+friends_ad_audio_16.ts
+#EXTINF:6.0,
+friends_ad_audio_17.ts
+#EXTINF:6.0,
+friends_ad_audio_18.ts
+#EXTINF:6.0,
+friends_ad_audio_19.ts
+#EXTINF:6.0,
+friends_ad_audio_20.ts
+#EXT-X-ENDLIST
