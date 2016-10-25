@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rules> 
+  <rule> 
+    <clientIP>0.0.0.0</clientIP>  
+    <redirectTimes>1</redirectTimes>  
+    <adHost>http://172.31.13.238:8089/origin/playlists</adHost> 
+  </rule> 
+</rules>

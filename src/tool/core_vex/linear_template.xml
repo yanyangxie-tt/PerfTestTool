@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearChannel xmlns="http://www.thistech.com/schemas/vex/1">  
+  <groupingStrategyBeanId xmlns="">%s</groupingStrategyBeanId>  
+  <alias xmlns="">%s</alias>  
+  <resourceURI xmlns="">%s/index.m3u8</resourceURI>  
+  <netWorkID xmlns="">%s/%s</netWorkID> 
+  <netWorkType xmlns="">PAID</netWorkType>  
+  <originServer xmlns="">  
+    <id>%s</id> 
+  </originServer>  
+  <streamType xmlns="">%s</streamType>
+  <viewExpansionFrequency xmlns="">%s</viewExpansionFrequency>
+</LinearChannel>

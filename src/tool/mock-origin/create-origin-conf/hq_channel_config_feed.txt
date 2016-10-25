@@ -1,0 +1,9 @@
+##hq
+playlist.hq/index.m3u8=hq/hq.m3u8
+config.hq.duration=6
+config.hq.targetDuration=6
+playlist.hq/hq_med_low.m3u8=hq_med_low_01.ts,hq_med_low_02.ts
+playlist.hq/hq_med_stan.m3u8=hq_med_stan_01.ts,hq_med_stan_02.ts
+playlist.hq/hq_med_high.m3u8=hq_med_high_01.ts,hq_med_high_02.ts
+playlist.hq/hq_med_shigh.m3u8=hq_med_shigh_01.ts,hq_media_shigh_02.ts
+playlist.hq/hq_med_thigh.m3u8=hq_med_thigh_01.ts,hq_media_thigh_02.ts
