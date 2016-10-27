@@ -114,7 +114,7 @@ class VODPerfTest(VEXPerfTestBase):
         warm_up_list = []
         if warm_up_period_minute and warm_up_period_minute > 1:
             warm_up_minute_list = self._generate_warm_up_minute_list(self.current_processs_concurrent_request_number, warm_up_period_minute)
-            warm_up_minute_list = self._enlarge_warm_up_list(self, warm_up_minute_list, warm_up_period_minute)
+            warm_up_minute_list = self._enlarge_warm_up_list(warm_up_minute_list, warm_up_period_minute)
             self.logger.info('Warm-up period is %s minute, warm-up list is:%s' % (warm_up_period_minute, warm_up_minute_list))
         else:
             self.logger.debug('Warm-up period is not set or its value <1, not do warm up')
@@ -132,8 +132,6 @@ class VODPerfTest(VEXPerfTestBase):
             return warm_up_minute_list
         
         n, m =  divmod(warm_up_period_minute, len(warm_up_minute_list))
-        print n, m
-        
         new_warm_up_minute_list = []
         for i in warm_up_minute_list:
             new_warm_up_minute_list += [i] * n
