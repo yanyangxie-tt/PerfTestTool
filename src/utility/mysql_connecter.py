@@ -8,7 +8,7 @@ from MySQLdb.cursors import DictCursor
 class MySQLConnection(object):
     conn = ''
     cursor = ''
-    def __init__(self, host, user, passwd, db=None, charset='utf8', port=3306, cursorclass=DictCursor):
+    def __init__(self, host, user, passwd, db=None, charset='utf8', port=3306, cursorclass=DictCursor, exit=False):
         """MySQL Database initialization """
         try:
             if db is None:
@@ -17,8 +17,11 @@ class MySQLConnection(object):
                 self.conn = MySQLdb.connect(host, user, passwd, db, port=port, cursorclass=cursorclass)
         except MySQLdb.Error, e:
             errormsg = 'Cannot connect to server\nERROR (%s): %s' % (e.args[0], e.args[1])
-            print errormsg
-            sys.exit(1)
+            if exit is True:
+                print errormsg
+                sys.exit(1)
+            else:
+                raise e
 
         self.cursor = self.conn.cursor()
 
@@ -47,10 +50,10 @@ class MySQLConnection(object):
             print 'Sql must be string'
         
         try:
-            if type(values) in [list, set, tuple]:
+            if type(values) in [list,]:
                 '''
                 sql = "insert into person(name, age, telephone) values(%s, %s, %s)"
-                tmp = (('ninini', 89, '888999'), ('koko', 900, '999999'))
+                tmp = [('ninini', 89, '888999'), ('koko', 900, '999999')]
                 conn.executemany(sql, tmp)
                 '''
                 self.cursor.executemany(sql_string, values)

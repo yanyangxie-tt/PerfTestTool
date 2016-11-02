@@ -7,6 +7,7 @@ import sys
 
 from utility import common_util
 from utility.mysql_connecter import MySQLConnection
+from logging import exception
 
 
 sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../.."))
@@ -38,9 +39,8 @@ class Configurations(object):
             if os.path.exists(golden_config_file) and os.path.isfile(golden_config_file):
                 self.parameters.update(common_util.load_properties(golden_config_file))
         
-        configred_parameters_in_db = self.get_configured_parameters_in_db()
-        if configred_parameters_in_db is not None:
-            self.parameters.update(configred_parameters_in_db)
+        self.connector = self.get_db_connection()
+        self.parameters.update(self.get_configured_parameters_in_db())
         
         self.init_configured_parameters()
         self.init_configured_parameters_default_value()
@@ -61,30 +61,48 @@ class Configurations(object):
 
             setattr(self, key, p_value)
     
-    def get_configured_parameters_in_db(self):
+    def get_db_connection(self):
         db_required = ['db.host', 'db.user', 'db.password', 'db.database']
         
         for p in db_required:
             if not self.parameters.has_key(p):
                 print 'Not configured required db parameters %s' %(p)
-                return
+                return None
         
-        user = common_util.get_config_value_by_key(self.parameters, 'db.user')
-        host = common_util.get_config_value_by_key(self.parameters, 'db.host')
-        password = common_util.get_config_value_by_key(self.parameters, 'db.password')
-        database = common_util.get_config_value_by_key(self.parameters, 'db.database')
-        port = int(common_util.get_config_value_by_key(self.parameters, 'db.port'))
+        try:
+            user = common_util.get_config_value_by_key(self.parameters, 'db.user')
+            host = common_util.get_config_value_by_key(self.parameters, 'db.host')
+            password = common_util.get_config_value_by_key(self.parameters, 'db.password')
+            database = common_util.get_config_value_by_key(self.parameters, 'db.database')
+            port = int(common_util.get_config_value_by_key(self.parameters, 'db.port'))
+            
+            connector = MySQLConnection(host, user, password, database, port=port)
+            return connector
+        except Exception,e:
+            print e
+            return None
+    
+    def get_configured_parameters_in_db(self):
+        if self.connector is None:
+            return {}
         
-        project_name = common_util.get_config_value_by_key(self.parameters, 'project.name')
-        test_case_type = common_util.get_config_value_by_key(self.parameters, 'test.case.type')
-        
-        connect = MySQLConnection(host, user, password, database, port=port)
-        connect.execute('select * from vex_config where project_name="%s" and test_case_type="%s"' %(project_name, test_case_type))
-        
-        result = connect.find_one()
-        if result is not None:
-            vex_config_in_db = result['test_case_config']
-            return eval(vex_config_in_db)
+        try:
+            use_vex_config_in_db = common_util.get_config_value_by_key(self.parameters, 'db.vex.config.enable', 'False')
+            vex_config_table_name = common_util.get_config_value_by_key(self.parameters, 'db.vex.config.table', None)
+            if string.lower(use_vex_config_in_db) != 'true' or vex_config_table_name is None:
+                return {}
+            
+            project_name = common_util.get_config_value_by_key(self.parameters, 'project.name')
+            test_case_type = common_util.get_config_value_by_key(self.parameters, 'test.case.type')
+            
+            self.connector.execute('select * from %s where project_name="%s" and test_case_type="%s"' %(vex_config_table_name, project_name, test_case_type))
+            result = self.connector.find_one()
+            if result is not None:
+                vex_config_in_db = result['test_case_config']
+                return eval(vex_config_in_db)
+        except Exception, e:
+            print 'Failed to read configuration from DB.' + e
+            return {}
     
     def init_configured_parameters_default_value(self):
         # initial your parameters which is required a default value using self._set_attr()
