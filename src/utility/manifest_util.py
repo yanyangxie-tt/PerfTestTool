@@ -53,7 +53,8 @@ def get_bitrate_urls(index_response, bitrate_number=2, use_iframe=True, use_sap=
         random.shuffle(bite_url_list)
         bite_url_list.insert(0, sap_url_list[0])
     else:
-        bite_url_list.append(sap_url_list[0])
+        if len(sap_url_list) > 0:
+            bite_url_list.append(sap_url_list[0])
         random.shuffle(bite_url_list)
         
     bite_url_list = bite_url_list[0:bitrate_number] if len(bite_url_list) > bitrate_number else bite_url_list

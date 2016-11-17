@@ -118,7 +118,7 @@ def read_vod_parameters():
         if opt_dict.has_key('-T'):
             ads_time_based = opt_dict['-T']
         else:
-            ads_time_based = 'false'
+            ads_time_based = 'true'
 
         return True
 
