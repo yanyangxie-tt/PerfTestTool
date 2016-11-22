@@ -65,6 +65,7 @@ class CdvrPerfTest(VEXPerfTestBase):
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
         self.dispatch_task_sched.add_interval_job(self._supply_request_to_max_client, start_date=start_date, seconds=1)
+        self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
     
     def _supply_request_to_max_client(self):
         # while recording is to end, will never call the cdvr recording any more. Need supply a new recording to meet the max client number.

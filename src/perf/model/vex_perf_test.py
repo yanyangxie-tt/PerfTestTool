@@ -214,8 +214,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.test_machine_hosts = self.test_machine_hosts.split(',')
         test_machine_inistace_size = len(self.test_machine_hosts)
         
-        if not hasattr(self, 'test_case_concurrent_number'):
-            # to linear, its name is test_case_client_number, not test_case_concurrent_number
+        if hasattr(self, 'test_case_client_number'):
+            # to linear, its name is test_case_client_number, not test_case_concurrent_number, need set it to test_case_concurrent_number
             self.test_case_concurrent_number = self.test_case_client_number
         
         self.test_machine_current_request_number = self.test_case_concurrent_number / test_machine_inistace_size if self.test_case_concurrent_number > test_machine_inistace_size else 1
@@ -420,16 +420,16 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def analysis_traced_bitrate_response(self):
         pass
     
-    '''
-    def dump_traced_bitrate_contents(self):
-        if self.bitrate_record_queue.empty():
-            return
-
-        datas = vex_util.get_datas_in_queue(self.bitrate_record_queue)
-        delta_traced_file = vex_util.get_timed_file_name(self.test_result_report_traced_file)
-        self.logger.info('Export delta traced report file to %s/%s at %s' % (self.test_result_report_traced_dir, delta_traced_file, time_util.get_local_now()))
-        file_util.write_file(self.test_result_report_traced_dir, delta_traced_file, datas, mode='a', is_delete=True)
-    '''
+    # to make config parameter in db come into effect
+    def periodic_update_config_in_db(self):
+        self.logger.debug('Sync configuration from config file and db.')
+        #self.update_config_in_db()
+        self.update_config()
+        self.init_configured_parameters()
+        
+        self.setup_test_machine_conccurent_request_number()
+        self.setup_processs_concurrent_request_number()
+        self.setup_test_contents()
      
     def startup_reporter(self):
         if hasattr(self, 'test_case_counter_dump_interval'):

@@ -51,6 +51,7 @@ class LinearPerfTest(VEXPerfTestBase):
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
         self.dispatch_task_sched.add_interval_job(self._supply_request_to_max_client, start_date=start_date, seconds=self.test_client_bitrate_request_frequency)
+        self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=5)
     
     def _supply_request_to_max_client(self):
         try:
@@ -63,7 +64,7 @@ class LinearPerfTest(VEXPerfTestBase):
                         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
                         task.set_start_date(start_date)
                         self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
-                        self.logger.debug('Supply: add %s task to test' % (i + 1))
+                        self.logger.debug('Supply: add %s task to test. task is %s' % ((i + 1), task))
         except Exception, e:
             self.logger.fatal(e)
             exit(1)
