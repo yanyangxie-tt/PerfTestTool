@@ -58,6 +58,7 @@ class ResultCollection(DistributeEnv):
         local('mkdir -p %s' % (local_host_zip_dir))
         
         with cd(self.perf_test_remote_result_dir):
+            print 'Go into result dir: %s' %(self.perf_test_remote_result_dir)
             tmp_zip_file = self.vex_tmp_dir +os.sep + 'tmp-vex-load-test-result.zip'
             run('rm -rf %s' % (tmp_zip_file))
             
