@@ -149,7 +149,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.bitrate_lock = threading.RLock()
     
     def init_queue(self):
-        self.task_queue = Queue.Queue(1000)
+        self.task_queue = Queue.LifoQueue(1000) #Queue.Queue(1000)
         #self.bitrate_record_queue = Queue.Queue(10000)
         self.error_record_queue = Queue.Queue(100000)
     
