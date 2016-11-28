@@ -109,6 +109,7 @@ class Configurations(object):
             test_case_type = common_util.get_config_value_by_key(self.parameters, 'test.case.type')
             
             #self.connector.execute('select * from %s where project_name="%s" and test_case_type="%s"' %(vex_config_table_name, project_name, test_case_type))
+            print 'select * from %s where test_type="%s"' %(vex_config_table_name, test_case_type)
             self.connector.execute('select * from %s where test_type="%s"' %(vex_config_table_name, test_case_type))
             result = self.connector.find_one()
             if result is not None:
@@ -129,6 +130,7 @@ class Configurations(object):
                     'project.name': str(project_name),
                     'test.bitrate.request.number':str(bitrate_number),
                     'test.case.concurrent.number':str(session_number),
+                    'test.case.client.number':str(session_number),
                     'test.case.warmup.period.minute':str(warm_up_minute),
                     'test.case.content.names':str(content_names),
                     }
