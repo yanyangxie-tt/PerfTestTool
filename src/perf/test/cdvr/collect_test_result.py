@@ -34,6 +34,7 @@ class LinearResultAnalyzer(ResultAnalyzer):
             sorted(error_list)
             for error in error_list:
                 contents += '\t%s' %(error)
+        contents += '\n'
         return contents
 
 if __name__ == '__main__':
