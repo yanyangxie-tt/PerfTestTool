@@ -47,6 +47,7 @@ class LinearBitrateResultTrace():
         self.ad_number_in_complete_cycle = int(ad_insertion_frequency.split('/')[1])
         self.entertainment_number_in_complete_cycle = int(ad_insertion_frequency.split('/')[0])
         self.sequence_increase_request_number = sequence_increase_request_number
+        self.time_format = '%Y-%m-%d %H:%M:%S'
         
         self.error_list = []
         
@@ -81,7 +82,7 @@ class LinearBitrateResultTrace():
         if len(bitrate_group_list) == 1 and has_ad_in_total is False:
             if len(bitrate_group_list[0]) > self.entertainment_number_in_complete_cycle:
                 message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
-                    % (len(bitrate_group_list[0]), self.entertainment_number_in_complete_cycle, bitrate_group_list[0][0].request_time, bitrate_result_list[-1].request_time,)
+                    % (len(bitrate_group_list[0]), self.entertainment_number_in_complete_cycle, bitrate_group_list[0][0].request_time.strftime(self.time_format), bitrate_result_list[-1].request_time.strftime(self.time_format),)
                 self.record_error(message)
                 return
         
