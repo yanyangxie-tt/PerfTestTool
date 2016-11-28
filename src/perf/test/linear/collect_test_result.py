@@ -33,7 +33,8 @@ class LinearResultAnalyzer(ResultAnalyzer):
             contents += '%s:' %(client_ip)
             sorted(error_list)
             for error in error_list:
-                contents += '%s\n' %(error)
+                contents += '%s\n\t' %(error)
+            contents += '\n'
         return contents
 
 if __name__ == '__main__':
