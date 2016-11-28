@@ -39,8 +39,8 @@ class Configurations(object):
         self.init_configured_parameters_default_value()
     
     def update_config(self):
-        self.update_default_config()
-        self.update_golden_config()
+        #self.update_default_config()
+        #self.update_golden_config()
         self.update_config_in_db()
     
     def update_default_config(self):

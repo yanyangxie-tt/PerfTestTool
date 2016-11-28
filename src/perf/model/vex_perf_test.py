@@ -423,7 +423,6 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     # to make config parameter in db come into effect
     def periodic_update_config_in_db(self):
         self.logger.debug('Sync configuration from config file and db.')
-        #self.update_config_in_db()
         self.update_config()
         self.init_configured_parameters()
         
@@ -485,6 +484,9 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                     self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
                     index += 1
                 time.sleep(self.warm_up_time_gap)
+                
+                # in warm up process, also need sync config in db
+                self.periodic_update_config_in_db()
                 
                 running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
                 if running_time != 0 and running_time % 60 == 0:
