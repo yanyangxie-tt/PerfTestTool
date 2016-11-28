@@ -81,8 +81,11 @@ class LinearBitrateResultTrace():
         # if no ad, then record the error
         if len(bitrate_group_list) == 1 and has_ad_in_total is False:
             if len(bitrate_group_list[0]) > self.entertainment_number_in_complete_cycle:
-                message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
-                    % (len(bitrate_group_list[0]), self.entertainment_number_in_complete_cycle, bitrate_group_list[0][0].request_time.strftime(self.time_format), bitrate_result_list[-1].request_time.strftime(self.time_format),)
+                message = 'No ad found in one ad-insertion cycle. Time window:%s~%s.' \
+                    % (bitrate_group_list[0][0].request_time.strftime(self.time_format), bitrate_result_list[-1].request_time.strftime(self.time_format),)
+                
+                #message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
+                #    % (len(bitrate_group_list[0]), self.entertainment_number_in_complete_cycle, bitrate_group_list[0][0].request_time.strftime(self.time_format), bitrate_result_list[-1].request_time.strftime(self.time_format),)
                 self.record_error(message)
                 return
         
@@ -155,13 +158,16 @@ class LinearBitrateResultTrace():
                 entertainment_request_size += 1
         
         if entertainment_request_size > self.entertainment_number_in_complete_cycle:
-            message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
-                    % (entertainment_request_size, self.entertainment_number_in_complete_cycle, bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,)
+            message = 'No ad found in one ad-insertion cycle. Time window: %s~%s.' \
+                    % (bitrate_result_list[0].request_time.strftime(self.time_format), bitrate_result_list[-1].request_time.strftime(self.time_format),)
+            
+            #message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
+            #        % (entertainment_request_size, self.entertainment_number_in_complete_cycle, bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,)
             self.record_error(message)
         
         if len(ad_url_set) != self.ad_number_in_complete_cycle:
             message = 'AD number is not as expected. Ad number:%s, expected ad number: %s. Time window: %s~%s. ' \
-                    % (len(ad_url_set), self.ad_number_in_complete_cycle, bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,)
+                    % (len(ad_url_set), self.ad_number_in_complete_cycle, bitrate_result_list[0].request_time.strftime(self.time_format), bitrate_result_list[-1].request_time.strftime(self.time_format),)
             self.record_error(message)
     
     def log_debug(self, message):
