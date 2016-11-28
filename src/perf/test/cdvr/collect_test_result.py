@@ -30,11 +30,10 @@ class LinearResultAnalyzer(ResultAnalyzer):
         
         contents = ''
         for client_ip, error_list in error_dict.items():
-            contents += '%s:' %(client_ip)
+            contents += '%s:\n' %(client_ip)
             sorted(error_list)
             for error in error_list:
-                contents += '%s\n\t' %(error)
-            contents += '\n'
+                contents += '\t%s\n' %(error)
         return contents
 
 if __name__ == '__main__':
