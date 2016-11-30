@@ -485,12 +485,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                     index += 1
                 time.sleep(self.warm_up_time_gap)
                 
-                # in warm up process, also need sync config in db
-                self.periodic_update_config_in_db()
-                
                 running_time = time_util.get_time_gap_in_seconds(time_util.get_local_now(), self.load_test_start_date)
                 if running_time != 0 and running_time % 60 == 0:
                     self.logger.info('Load test has been running %s minute' % (running_time / 60))
+                    
+                    # in warm up process, also need sync config in db
+                    self.periodic_update_config_in_db()
         self.logger.info('Finish warm-up process')
     
     def dispatch_task_with_max_request(self):
