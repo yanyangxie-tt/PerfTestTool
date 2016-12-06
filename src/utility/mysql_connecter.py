@@ -6,8 +6,8 @@ import MySQLdb
 from MySQLdb.cursors import DictCursor
 
 class MySQLConnection(object):
-    conn = ''
-    cursor = ''
+    conn = None
+    cursor = None
     def __init__(self, host, user, passwd, db=None, charset='utf8', port=3306, cursorclass=DictCursor, exit=False):
         """MySQL Database initialization """
         try:
@@ -77,9 +77,10 @@ class MySQLConnection(object):
         return self.cursor.fetchall()
               
     def __del__(self):
-        """ Terminate the connection """
-        self.conn.close()
-        self.cursor.close()
+        if self.cursor is not None:
+            self.cursor.close()
+        if self.conn is not None:
+            self.conn.close()
 
 if __name__ == '__main__':
     db='addtest'

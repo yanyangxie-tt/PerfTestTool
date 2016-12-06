@@ -129,7 +129,7 @@ if __name__ == '__main__':
         
     # ads server url and apis
     ads_server_url = 'http://%s:%s/%s' % (ads_server_host, ads_server_port, ads_server_context)
-    set_vod_response_template_api = 'SetResponseTemplate/%s' % (vod_replace_poid_count)
+    set_vod_response_template_api = 'SetResponseTemplate?poidReplace=%s' % (vod_replace_poid_count)
     i_headers = {'zone':ads_zone} if ads_zone is not None else {}
     i_headers['timebase'] = ads_time_based if ads_time_based is not None and (ads_time_based == 'true' or ads_time_based == 'True')else 'false'
 
