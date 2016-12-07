@@ -10,7 +10,7 @@ perf_test_scipt_file="${perf_test_script_dir}/execute_distributed_test.py"
 echo "Perftest script is: ${perf_test_scipt_file}"
 
 if [ ! -f "$perf_test_scipt_file" ]; then
-    echo "Not found the perf test script ${perf_test_scipt_file}"
+    echo "Not found the performance test script ${perf_test_scipt_file}" >&2
     exit 1
 fi
 
@@ -18,7 +18,7 @@ echo "python ${perf_test_scipt_file} ${perf_test_task}"
 python ${perf_test_scipt_file} ${perf_test_task}
 
 if [[ $? != 0 ]];then
-	echo "Do performance test failed. ${ret}"
+	echo "Do performance test failed. ${ret}" >&2
 	exit 2
 fi
 

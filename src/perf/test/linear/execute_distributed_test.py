@@ -44,6 +44,12 @@ class DistributePerfTest(DistributeEnv):
         with settings(parallel=True, roles=[perf_test_machine_group, ]):
             execute(getattr(self, method))
     
+    def check_perf_test_status(self):
+        pids = fab_util.fab_get_pids(load_test_sigle_process_script_file)
+        if pids is None or pids == '':
+            print 'Performance test script %s is not running' %(load_test_sigle_process_script_file)
+            exit(3)
+    
     def upload_test_script(self):
         # create script folder in remote machine
         if exists(perf_test_remote_script_dir):
@@ -74,6 +80,8 @@ if __name__ == '__main__':
         distribute_test.execute_task('stop_perf_test')
         distribute_test.execute_task('rm_perf_test_log')
         distribute_test.execute_task('start_perf_test')
+    elif task_name == 'status':
+        distribute_test.execute_task('check_perf_test_status')
     else:
         print 'Not support the method'
         exit(1)

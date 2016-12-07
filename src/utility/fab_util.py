@@ -195,6 +195,22 @@ def fab_shutdown_service(service_tag='tomcat', service_shutdown_command=None, is
         for p_id in pids:
             local('kill -9 %s' % (p_id)) if is_local else run('kill -9 %s' % (p_id), pty=False, warn_only=True, timeout=5) 
 
+def fab_get_pids(service_tag='tomcat', is_local=False):
+    if is_local:
+        pid = local("ps gaux | grep %s | grep -v grep | awk '{print $2}'" % (service_tag))
+    else:
+        pid = run("ps gaux | grep %s | grep -v grep | awk '{print $2}'" % (service_tag), pty=False, warn_only=True)
+        
+    if pid == '':
+        return
+
+    pids = str(pid).splitlines()
+    if pids is None or len(pids) == 0:
+        return ''
+    else:
+        import string
+        return string.join(pids, ',')
+
 def upload_file_or_dir_to_remote(local_path, remote_path):
     '''
         Upload one or more files to a remote host. 
