@@ -39,8 +39,6 @@ class Configurations(object):
         self.init_configured_parameters_default_value()
     
     def update_config(self):
-        #self.update_default_config()
-        #self.update_golden_config()
         self.update_config_in_db()
     
     def update_default_config(self):
@@ -50,7 +48,6 @@ class Configurations(object):
         if self.parameters.has_key('golden_config_file'):
             golden_config_file = self.parameters.get('golden_config_file')
             if os.path.exists(golden_config_file) and os.path.isfile(golden_config_file):
-                print common_util.load_properties(golden_config_file)
                 self.parameters.update(common_util.load_properties(golden_config_file))
 
     def update_config_in_db(self):

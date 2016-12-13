@@ -297,6 +297,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             else:
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=False)
             
+            self.logger.debug('Bitrate response for task %s:%s' %(task, response_text))
             # check or send psn
             self.do_bitrate_subsequent_step(task, response_text)
         except Exception, e:
@@ -423,8 +424,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     # to make config parameter in db come into effect
     def periodic_update_config_in_db(self):
         self.logger.debug('Sync configuration from config file and db.')
-        self.update_config()
-        self.init_configured_parameters()
+        self.update_config_in_db()
         
         self.setup_test_machine_conccurent_request_number()
         self.setup_processs_concurrent_request_number()
