@@ -473,9 +473,10 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         warm_up_list = self._generate_warm_up_list()
         # generate warm-up rate
         if len(warm_up_list) > 0:
+            self.logger.info('warm-up minute is %s' %(warm_up_list))
             # Fetch tasks by the number of warm_up_list, and then add it to task consumer(task sched)
             for task_number in warm_up_list:
-                self.logger.debug('Warm-up stage: Put %s task into task queue' % (task_number))
+                self.logger.info('Warm-up stage: Put %s task into task queue' % (task_number))
                 index = 0
                 while index < task_number:
                     task = self.task_queue.get(True, timeout=10)
