@@ -1,5 +1,5 @@
 # -*- coding=utf-8 -*-
-# author: yanyang.xie@gmail.com
+# author: yanyang.xie@thistech.com
 
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase

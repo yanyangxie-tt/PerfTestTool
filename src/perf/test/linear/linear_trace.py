@@ -163,7 +163,7 @@ class LinearBitrateResultTrace():
             
             #message = 'No ad found in one ad-insertion cycle. Entertainment number is %s, larger than %s. Time window: %s~%s.' \
             #        % (entertainment_request_size, self.entertainment_number_in_complete_cycle, bitrate_result_list[0].request_time, bitrate_result_list[-1].request_time,)
-            self.record_error(message)
+            self.record_error(message + 'Bitrate result list is:%s' %(bitrate_result_list))
         
         if len(ad_url_set) != self.ad_number_in_complete_cycle:
             message = 'AD number is not as expected. Ad number:%s, expected ad number: %s. Time window: %s~%s. ' \

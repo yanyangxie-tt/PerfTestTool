@@ -1,5 +1,5 @@
 # -*- coding=utf-8 -*-
-# author: yanyang.xie@gmail.com
+# author: yanyang.xie@thistech.com
 # https://docs.python.org/2/library/datetime.html
 
 import datetime

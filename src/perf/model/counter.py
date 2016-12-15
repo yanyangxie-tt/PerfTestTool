@@ -1,5 +1,5 @@
 # -*- coding=utf-8 -*-
-# author: yanyang.xie@gmail.com
+# author: yanyang.xie@thistech.com
 
 class Metric():
     '''Metric is to record the total number which meet the special range, such as [100, 200]'''

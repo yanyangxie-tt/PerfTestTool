@@ -1,5 +1,5 @@
 # -*- coding=utf-8 -*-
-# author: yanyang.xie@gmail.com
+# author: yanyang.xie@thistech.com
 
 import os
 import string
