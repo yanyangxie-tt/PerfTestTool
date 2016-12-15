@@ -45,7 +45,7 @@ class LinearBitrateResultTrace():
         self.ad_insertion_frequency = ad_insertion_frequency
         self.content_segment_time = content_segment_time
         self.ad_number_in_complete_cycle = int(ad_insertion_frequency.split('/')[1])
-        self.entertainment_number_in_complete_cycle = int(ad_insertion_frequency.split('/')[0])
+        self.entertainment_number_in_complete_cycle = int(ad_insertion_frequency.split('/')[0]) + int(ad_insertion_frequency.split('/')[0]) + 2
         self.sequence_increase_request_number = sequence_increase_request_number
         self.time_format = '%Y-%m-%d %H:%M:%S'
         
