@@ -78,6 +78,14 @@ class ResultAnalyzer(ResultCollection):
         if self.db_vex_result_store_enable is False or self.connector is None:
             return
         
+        if self.index_report_content is None or self.index_report_content.strip() == '':
+            print 'Not found index test report, not store it into db'
+            return
+        
+        if self.bitrate_report_content is None or self.bitrate_report_content.strip() == '':
+            print 'Not found bitrate test report, not store it into db'
+            return
+        
         try:
             current_date = time_util.get_current_day_start_date()
             self.connector.execute("select * from " + self.db_vex_result_table + " where project_name='%s' and project_version='%s' and test_type='%s' and test_date='%s'" \
