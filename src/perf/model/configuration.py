@@ -40,6 +40,7 @@ class Configurations(object):
     
     def update_config(self):
         self.update_config_in_db()
+        self.init_configured_parameters()
     
     def update_default_config(self):
         self.parameters.update(common_util.load_properties(self.config_file,))

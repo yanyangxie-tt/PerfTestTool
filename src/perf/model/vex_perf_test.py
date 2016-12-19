@@ -424,7 +424,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     # to make config parameter in db come into effect
     def periodic_update_config_in_db(self):
         self.logger.info('Sync configuration from config file and db.')
-        self.update_config_in_db()
+        self.update_config()
         
         self.setup_test_machine_conccurent_request_number()
         self.setup_processs_concurrent_request_number()
