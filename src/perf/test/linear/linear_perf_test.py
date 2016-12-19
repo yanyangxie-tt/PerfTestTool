@@ -37,6 +37,9 @@ class LinearPerfTest(VEXPerfTestBase):
         self.alived_client_recorder_dict = {}
         self.check_client_ip_dict = {}
     
+    def update_config_individual_step(self):
+        self.set_checked_client_number()
+    
     def set_component_private_environment(self):
         self.set_checked_client_number()
     
