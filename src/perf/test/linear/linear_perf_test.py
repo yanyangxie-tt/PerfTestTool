@@ -44,7 +44,7 @@ class LinearPerfTest(VEXPerfTestBase):
         self.set_checked_client_number()
     
     def set_checked_client_number(self):
-        checked_client_number = int(self.current_processs_concurrent_request_number * self.client_response_check_percent)
+        checked_client_number = int(self.current_processs_concurrent_request_number * float(self.client_response_check_percent))
         self.checked_client_number = 1 if checked_client_number < 1 else checked_client_number
     
     def generate_index_url(self):
