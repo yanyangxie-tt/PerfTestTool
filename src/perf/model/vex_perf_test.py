@@ -423,13 +423,17 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     
     # to make config parameter in db come into effect
     def periodic_update_config_in_db(self):
-        self.logger.info('Sync configuration from config file and db.')
-        self.update_config()
-        
-        self.setup_test_machine_conccurent_request_number()
-        self.setup_processs_concurrent_request_number()
-        self.setup_test_contents()
-        self.update_config()
+        try:
+            self.logger.info('Sync db configuration start.')
+            self.update_config()
+            
+            self.setup_test_machine_conccurent_request_number()
+            self.setup_processs_concurrent_request_number()
+            self.setup_test_contents()
+            #self.update_config()
+            self.logger.info('Sync db configuration done.')
+        except Exception, e:
+            self.logger.error('Failed to sync db. %s' % (e), exc_info=1)
      
     def startup_reporter(self):
         if hasattr(self, 'test_case_counter_dump_interval'):
