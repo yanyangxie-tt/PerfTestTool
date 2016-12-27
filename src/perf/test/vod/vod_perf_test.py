@@ -92,7 +92,7 @@ class VODPerfTest(VEXPerfTestBase):
     def dispatch_task_with_max_request(self):
         self.logger.info('Start to do vod performance with max current request %s of this process' % (self.current_processs_concurrent_request_number))
         self.dispatch_task_sched.add_interval_job(self._fetch_task_and_add_to_consumer, seconds=1)
-        self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
+        #self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
     
     def _fetch_task_and_add_to_consumer(self):
         # Fetch task from task queue, and add it to task consumer

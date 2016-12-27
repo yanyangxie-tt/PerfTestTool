@@ -443,6 +443,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.report_sched.add_interval_job(self.dump_delta_statistical_data, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
             self.report_sched.add_interval_job(self.dump_delta_error_details, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
             #self.report_sched.add_interval_job(self.dump_traced_bitrate_contents, seconds=self.test_case_counter_dump_interval, start_date=r_start_date)
+        
+            self.report_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
         else:
             self.logger.warn('No parameter test.case.counter.dump.interval, not dump statistical data while running')
             
@@ -496,7 +498,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                     self.logger.info('Load test has been running %s minute' % (running_time / 60))
                     
                     # in warm up process, also need sync config in db
-                    self.periodic_update_config_in_db()
+                    #self.periodic_update_config_in_db()
         self.logger.info('Finish warm-up process')
     
     def dispatch_task_with_max_request(self):
@@ -566,6 +568,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 
                 if running_time != 0 and running_time % 60 == 0:
                     self.logger.info('Load test has been running %s minute' % (running_time / 60))
+                    #self.periodic_update_config_in_db()
             
             self.logger.info('#' * 100)
             self.logger.info('Reach load test time limitation %s. Shutdown sched and flush statistics info into local file.' % (self.test_case_survival))

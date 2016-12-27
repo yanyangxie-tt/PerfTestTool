@@ -54,7 +54,7 @@ class LinearPerfTest(VEXPerfTestBase):
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
         self.dispatch_task_sched.add_interval_job(self._supply_request_to_max_client, start_date=start_date, seconds=self.test_client_bitrate_request_frequency)
-        self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
+        #self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
     
     def _supply_request_to_max_client(self):
         try:
