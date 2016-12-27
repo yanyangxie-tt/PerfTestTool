@@ -429,7 +429,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self.setup_test_machine_conccurent_request_number()
         self.setup_processs_concurrent_request_number()
         self.setup_test_contents()
-        self.update_config_()
+        self.update_config()
      
     def startup_reporter(self):
         if hasattr(self, 'test_case_counter_dump_interval'):
