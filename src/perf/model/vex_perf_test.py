@@ -393,7 +393,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.bitrate_counter.clear_delta_metric()
             
             delta_report_file = vex_util.get_timed_file_name(self.test_result_report_delta_file)
-            self.logger.debug('Export delta load test report file to %s/%s at %s' % (self.test_result_report_delta_dir, delta_report_file, time_util.get_local_now()))
+            self.logger.info('Export delta load test report file to %s/%s at %s' % (self.test_result_report_delta_dir, delta_report_file, time_util.get_local_now()))
             self.logger.info(statistical_data)
             file_util.write_file(self.test_result_report_delta_dir, delta_report_file, statistical_data, mode='a', is_delete=True)
             
@@ -427,10 +427,10 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.logger.info('Sync db configuration start.')
             self.update_config()
             
+            self.init_result_dir()
             self.setup_test_machine_conccurent_request_number()
             self.setup_processs_concurrent_request_number()
             self.setup_test_contents()
-            #self.update_config()
             self.logger.info('Sync db configuration done.')
         except Exception, e:
             self.logger.error('Failed to sync db. %s' % (e), exc_info=1)

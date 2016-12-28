@@ -4,7 +4,7 @@
 from init_script_env import *
 from perf.result.result_analyzer import ResultAnalyzer
 
-class LinearResultAnalyzer(ResultAnalyzer):
+class LinearResultAnalyzer(ResultAnalyzer):    
     def __init__(self, config_file, collect_traced_data=False, collected_result_before_now=2, **kwargs):
         self.export_concurrent_number = False
         report_dir = here + os.sep + 'reports'
