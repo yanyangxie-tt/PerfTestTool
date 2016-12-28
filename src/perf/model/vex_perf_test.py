@@ -575,7 +575,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.dispatch_task_sched.shutdown(False)
             self.task_consumer_sched.shutdown(True)
             self.report_sched.shutdown(False)
-            if self.send_psn_message: 
+            if hasattr(self, 'send_psn_message') and self.send_psn_message: 
                 self.psn_sched.shutdown(False)
             
             self.dump_summary_statistical_data()
