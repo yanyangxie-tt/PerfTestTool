@@ -26,7 +26,7 @@ class LinearPerfTest(VEXPerfTestBase):
         self._set_attr('client_response_asset_tag', 'test')
         self._set_attr('test_type_options', test_type_options)
         self._set_attr('index_url_format', index_url_format)
-        self._set_attr('warm_up_time_gap', 60)  # in warm up stage, time gap in each requests bundle
+        self._set_attr('warm_up_time_gap', 1)  # in warm up stage, time gap in each requests bundle
         self._set_attr('test_use_iframe', False, True)
         self._set_attr('test_require_sap', False)
         self._set_attr('fake_file_dir', os.path.dirname(os.path.realpath(__file__)))
