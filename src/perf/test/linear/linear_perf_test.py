@@ -132,8 +132,10 @@ class LinearPerfTest(VEXPerfTestBase):
             self.do_bitrate_result_trace_check(client_ip, bitrate_result_trace)
     
     def do_bitrate_result_trace_check(self, client_ip, bitrate_result_trace):
-        bitrate_result_trace.check(self.logger)
+        if bitrate_result_trace is None:
+            return
         
+        bitrate_result_trace.check(self.logger)
         if len(bitrate_result_trace.error_list) != 0:
             error_contents = client_ip + '::'
             error_contents += string.join(bitrate_result_trace.error_list, '||')
