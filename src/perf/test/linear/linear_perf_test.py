@@ -60,7 +60,7 @@ class LinearPerfTest(VEXPerfTestBase):
         try:
             with self.index_lock:
                 if len(self.alived_client_recorder_dict) < self.current_processs_concurrent_request_number:
-                    self.logger.debug('Supply: running test client number is %s, less than the expected %s, supply it.' % (len(self.alived_client_recorder_dict), self.current_processs_concurrent_request_number))
+                    self.logger.info('Supply: running test client number is %s, less than the expected %s, supply it.' % (len(self.alived_client_recorder_dict), self.current_processs_concurrent_request_number))
                     gap = self.current_processs_concurrent_request_number - len(self.alived_client_recorder_dict)
                     for i in range(0, gap):
                         task = self.task_queue.get(True, timeout=10)
