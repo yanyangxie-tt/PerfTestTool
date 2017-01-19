@@ -253,11 +253,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
-                self.logger.warn('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self.logger.error('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
-                self.logger.warn('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self.logger.error('Failed to index request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
                 return
             
@@ -270,7 +270,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             
         except Exception, e:
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
-            self.logger.error('Failed to index request. %s' % (e), exc_info=1)
+            #self.logger.error('Failed to index request. %s' % (e), exc_info=1)
+            self.logger.error('Failed to index request. %s' % (str(e)))
     
     def do_index_subsequent_step(self, task):
         pass
@@ -289,11 +290,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
-                self.logger.warn('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self.logger.error('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
-                self.logger.warn('Failed to bitrate request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self.logger.error('Failed to bitrate request. Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
                 return
             else:
