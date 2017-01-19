@@ -253,6 +253,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
+                self.logger.warn('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
@@ -288,6 +289,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
+                self.logger.warn('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
