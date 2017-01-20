@@ -2,12 +2,14 @@
 # author: yanyang.xie@thistech.com
 
 import string
+from time import sleep
 
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
 from perf.parser.manifest import LinearManifestChecker
 from perf.test.linear.linear_trace import LinearBitrateResultTrace, LinearBitrateResult
 from utility import time_util
+
 
 test_type_options = ['LINEAR_T6', 'LINEAR_TVE']
 index_url_format = 'http://mm.linear.%s.comcast.net/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&DeviceId=1'
@@ -54,9 +56,30 @@ class LinearPerfTest(VEXPerfTestBase):
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
         self.dispatch_task_sched.add_interval_job(self._supply_request_to_max_client, start_date=start_date, seconds=self.test_client_bitrate_request_frequency)
-        #self.dispatch_task_sched.add_interval_job(self.periodic_update_config_in_db, seconds=60)
     
     def _supply_request_to_max_client(self):
+        try:
+            with self.index_lock:
+                if len(self.alived_client_recorder_dict) < self.current_processs_concurrent_request_number:
+                    self.logger.info('Supply: running test client number is %s, less than the expected %s, supply it.' % (len(self.alived_client_recorder_dict), self.current_processs_concurrent_request_number))
+                    gap = self.current_processs_concurrent_request_number - len(self.alived_client_recorder_dict)
+                    for i in range(0, gap):
+                        # double check the alived_client_recorder_dict
+                        sleep(.2)
+                        if len(self.alived_client_recorder_dict) < self.current_processs_concurrent_request_number:
+                            task = self.task_queue.get(True, timeout=10)
+                            start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=1)
+                            task.set_start_date(start_date)
+                            self.task_consumer_sched.add_date_job(self.do_index, start_date, args=(task,))
+                            self.logger.debug('Supply: add %s task to test. task is %s' % ((i + 1), task))
+                        else:
+                            break
+                        
+        except Exception, e:
+            self.logger.fatal(e)
+            exit(1)
+    
+    def _supply_request_to_max_client_old(self):
         try:
             with self.index_lock:
                 if len(self.alived_client_recorder_dict) < self.current_processs_concurrent_request_number:
