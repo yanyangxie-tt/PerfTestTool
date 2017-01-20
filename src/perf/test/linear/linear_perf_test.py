@@ -97,12 +97,13 @@ class LinearPerfTest(VEXPerfTestBase):
     
     def do_index_subsequent_step(self, task):
         # To linear and cdvr, record its client ip to do check and supply with max client
-        self.alived_client_recorder_dict[task.get_client_ip()] = task
-        
-        client_ip = task.get_client_ip()
-        if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
-            self.check_client_ip_dict[client_ip] = None
-            self.logger.info('Add client %s into check list. Current checked client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
+        with self.index_lock:
+            self.alived_client_recorder_dict[task.get_client_ip()] = task
+            
+            client_ip = task.get_client_ip()
+            if len(self.check_client_ip_dict) < self.checked_client_number and not self.check_client_ip_dict.has_key(client_ip):
+                self.check_client_ip_dict[client_ip] = None
+                self.logger.info('Add client %s into check list. Current checked client is %s, max is %s' % (client_ip, len(self.check_client_ip_dict), self.checked_client_number))
     
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):
