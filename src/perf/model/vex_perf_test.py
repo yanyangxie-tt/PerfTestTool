@@ -253,7 +253,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
-                self.logger.error('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self.logger.error('Failed to do index request. Response is None means index request is failed after retry more times. Task:%s' % (task))
                 self._increment_counter(self.index_counter, self.index_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
@@ -271,7 +271,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         except Exception, e:
             self._increment_counter(self.index_counter, self.index_lock, response_time=0, is_error_request=True)
             #self.logger.error('Failed to index request. %s' % (e), exc_info=1)
-            self.logger.error('Failed to index request. %s' % (str(e)))
+            self.logger.error('Failed to index request. Error: %s' % (str(e)), exc_info=1)
     
     def do_index_subsequent_step(self, task):
         pass
@@ -290,7 +290,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 response_text, status_code = (response.text, response.status_code) if response is not None else ('', 500)
                 
             if response is None:
-                self.logger.error('Failed to index request. Reponse is None? Status code:%s, message=%s, task:%s' % (response.status_code, response_text, task))
+                self.logger.error('Failed to do bitrate request. Response is None means bitrate request is failed after retry more times. Task:%s' % (task))
                 self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=used_time, is_error_request=True)
                 return
             elif status_code != 200:
@@ -305,7 +305,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.do_bitrate_subsequent_step(task, response_text)
         except Exception, e:
             self._increment_counter(self.bitrate_counter, self.bitrate_lock, response_time=0, is_error_request=True)
-            self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
+            #self.logger.error('Failed to bitrate request. %s' % (e), exc_info=1)
+            self.logger.error('Failed to bitrate request. Error: %s' % (str(e)), exc_info=1)
     
     def do_bitrate_subsequent_step(self, task, response_text):
         pass
