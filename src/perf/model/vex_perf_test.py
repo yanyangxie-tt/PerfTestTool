@@ -85,6 +85,9 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         
         self.client_response_check_percent = float(self.client_response_check_percent)
         self.export_concurrent_number = False
+
+        self._set_attr('test_case_use_random_content', False, True)
+        self.content_generater_count=0
     
     def set_component_private_default_value(self):
         # should setup component default parameters
@@ -147,6 +150,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
     def init_lock(self):
         self.index_lock = threading.RLock()
         self.bitrate_lock = threading.RLock()
+        self.content_generator_lock = threading.RLock()
     
     def init_queue(self):
         self.task_queue = Queue.LifoQueue(1000) #Queue.Queue(1000)
@@ -509,8 +513,18 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         pass
     
     def _get_random_content(self):
-        i = random.randint(0, len(self.test_content_name_list) - 1)
-        return self.test_content_name_list[i]
+        if self.test_case_use_random_content is not True:
+            with self.content_generator_lock:
+                content_list_size = len(self.test_content_name_list)
+                if self.content_generater_count >= content_list_size:
+                    self.content_generater_count = 0
+                else:
+                    self.content_generater_count += 1
+
+                return self.test_content_name_list[self.content_generater_count % content_list_size]
+        else:
+            i = random.randint(0, len(self.test_content_name_list) - 1)
+            return self.test_content_name_list[i]
     
     def _get_random_zone(self):
         i = random.randint(0, self.test_client_zone_number)
