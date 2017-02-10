@@ -2,6 +2,7 @@
 # author: yanyang.xie@thistech.com
 
 import string
+import random
 from time import sleep
 
 from init_script_env import *
@@ -165,8 +166,42 @@ class LinearPerfTest(VEXPerfTestBase):
             error_contents += string.join(bitrate_result_trace.error_list, '||')
             self.error_record_queue.put(error_contents)
             bitrate_result_trace.error_list = []
-    
+
     def _generate_warm_up_list(self):
+        total_number = self.current_processs_concurrent_request_number
+        warm_up_period_minute = self.test_case_warmup_period_minute
+        return self._generate_warm_up_second_list(total_number, warm_up_period_minute)
+    
+    def _generate_warm_up_second_list(self, total_number, warm_up_period_minute):    
+        warm_up_minute_list = self._generate_warm_up_minute_list(total_number, warm_up_period_minute)
+    
+        warm_up_second_list = []
+        for warm_up_minute_number in warm_up_minute_list:
+            second_list = self._generate_warm_up_minute_list(warm_up_minute_number, 60)
+            warm_up_second_list += second_list
+        return warm_up_second_list
+    
+    def _generate_warm_up_minute_list(self, total_number, warm_up_period_minute):
+        warm_up_minute_list = [0 for i in range(0, warm_up_period_minute)]
+        
+        i = 0
+        while(True):
+            warm_up_minute_list[i] += 1
+    
+            i += 1
+            total_number -=1
+    
+            if i >= warm_up_period_minute:
+                i = 0
+    
+            if total_number <=0:
+                break
+    
+        random.shuffle(warm_up_minute_list)
+        return warm_up_minute_list
+    
+    '''
+    def _generate_warm_up_list_older(self):
         total_number = self.current_processs_concurrent_request_number
         warm_up_period_minute = self.test_case_warmup_period_minute
         
@@ -180,6 +215,7 @@ class LinearPerfTest(VEXPerfTestBase):
             warm_up_minute_list = warm_up_minute_list[:-1] + [remainder_number, ]
         
         return warm_up_minute_list
+    '''
 
 if __name__ == '__main__':
     current_process_index = int(sys.argv[1]) if len(sys.argv) > 1 else 0
