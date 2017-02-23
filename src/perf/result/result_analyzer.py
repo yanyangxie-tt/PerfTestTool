@@ -119,7 +119,7 @@ class ResultAnalyzer(ResultCollection):
             self.connector.execute_with_values(sql, value_list)
             print 'Perf test result has been saved into DB.'
         except Exception, e:
-            print 'Failed to save test result into DB.' + e
+            print 'Failed to save test result into DB.' + str(e)
     
     def _merge_vex_count_list(self, counter_list):
         if counter_list is None or len(counter_list) == 0:
