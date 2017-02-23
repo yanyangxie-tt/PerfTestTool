@@ -99,7 +99,9 @@ class ResultAnalyzer(ResultCollection):
                 self.connector.execute("select id from " + self.db_vex_result_table)
                 ids = [d['id'] for d in self.connector.find_all()]
                 ids.sort()
-                p_id = ids[-1] + 1
+                
+                
+                p_id = ids[-1] + 1 if len(ids) > 0 else 1
             
             sql = "insert into " + self.db_vex_result_table + " values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             value = []
