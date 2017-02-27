@@ -341,6 +341,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         response, used_time = None, 0
         try:
             response, used_time = self.get_response(task, self.test_client_request_timeout)
+            if response is None or response.status_code != 200:
+                raise Exception('Response is None or status code is %s' %(response.status_code))
         except Exception, e:
             self.logger.error('Failed to do %s task. %s. %s' % (tag, task, e), exc_info=0)
             
