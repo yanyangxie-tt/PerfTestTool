@@ -56,6 +56,9 @@ class Configurations(object):
                 self.parameters.update(common_util.load_properties(golden_config_file))
 
     def update_config_in_db(self):
+        if self._has_attr('db_vex_config_enable') is False and self._has_attr('db_vex_result_store_enable') is False:
+            return
+        
         if not hasattr(self, 'connector'):
             self.connector = self.get_db_connection()
         self.parameters.update(self.get_configured_parameters_in_db())

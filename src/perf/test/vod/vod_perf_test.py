@@ -7,7 +7,9 @@ from perf.parser.manifest import VODManifestChecker
 from utility import time_util
 
 test_type_options = ['VOD_T6', 'OTHER:VOD']
-index_url_format = 'http://mm.vod.comcast.net/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+
+index_url_format = 'http://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+default_vex_cluster_host='mm.vod.comcast.net'
 
 class VODPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -16,6 +18,7 @@ class VODPerfTest(VEXPerfTestBase):
         @param current_process_index: used to generate current concurrent request number , should less than total process number
         @param log_file: log file absolute path
         '''
+        self.test_case_vex_cluster_host = default_vex_cluster_host
         super(VODPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
@@ -39,7 +42,7 @@ class VODPerfTest(VEXPerfTestBase):
     
     def generate_index_url(self):
         content_name = self._get_random_content()
-        return self.index_url_format % (content_name, content_name, self.test_case_type)
+        return self.index_url_format % (self.test_case_vex_cluster_host, content_name, content_name, self.test_case_type)
     
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):

@@ -13,7 +13,9 @@ from utility import time_util
 
 
 test_type_options = ['LINEAR_T6', 'LINEAR_TVE']
-index_url_format = 'http://mm.linear.%s.comcast.net/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&DeviceId=1'
+index_url_format = 'http://%s/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&DeviceId=1'
+default_vex_cluster_host='mm.linear.%s.comcast.net'
+
 
 class LinearPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -22,6 +24,7 @@ class LinearPerfTest(VEXPerfTestBase):
         @param current_process_index: used to generate current concurrent request number , should less than total process number
         @param log_file: log file absolute path
         '''
+        self.test_case_vex_cluster_host = default_vex_cluster_host
         super(LinearPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
@@ -52,7 +55,11 @@ class LinearPerfTest(VEXPerfTestBase):
     
     def generate_index_url(self):
         content_name = self._get_random_content()
-        return self.index_url_format % (content_name, content_name, self.test_case_type, content_name)
+
+        vex_host = self.test_case_vex_cluster_host %(content_name)
+        
+        print self.index_url_format % (vex_host, content_name, self.test_case_type, content_name)
+        return self.index_url_format % (vex_host, content_name, self.test_case_type, content_name)
     
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)

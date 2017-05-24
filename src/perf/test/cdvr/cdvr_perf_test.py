@@ -12,7 +12,8 @@ from perf.test.cdvr.cdvr_trace import CdvrBitrateResultTrace, CdvrBitrateResult
 from utility import time_util
 
 test_type_options = ['CDVR_T6', ]
-index_url_format = 'http://mm.cdvr.comcast.net/%s/index.m3u8?RecordingId=%s&StreamType=%s&ProviderId=1234567&AssetId=king1234567890123456&DeviceId=1'
+index_url_format = 'http://%s/%s/index.m3u8?RecordingId=%s&StreamType=%s&ProviderId=1234567&AssetId=king1234567890123456&DeviceId=1'
+default_vex_cluster_host='mm.cdvr.comcast.net'
     
 class CdvrPerfTest(VEXPerfTestBase):
     def __init__(self, config_file, current_process_index=0, **kwargs):
@@ -21,6 +22,7 @@ class CdvrPerfTest(VEXPerfTestBase):
         @param current_process_index: used to generate current concurrent request number , should less than total process number
         @param log_file: log file absolute path
         '''
+        self.test_case_vex_cluster_host = default_vex_cluster_host
         super(CdvrPerfTest, self).__init__(config_file, current_process_index=current_process_index, **kwargs)
     
     def set_component_private_default_value(self):
@@ -60,7 +62,7 @@ class CdvrPerfTest(VEXPerfTestBase):
     def generate_index_url(self):
         # To cdvr, different client watchs a different recording
         content_name = self._get_random_content() + '_' + str(random.randint(0, 1000 * 1000))
-        return self.index_url_format % (content_name, content_name, self.test_case_type)
+        return self.index_url_format % (self.test_case_vex_cluster_host, content_name, content_name, self.test_case_type)
     
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)

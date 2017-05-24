@@ -5,13 +5,14 @@ import os
 import re
 
 class ManifestPaser(object):
-    def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_',):
+    def __init__(self, manifest, request_url, psn_tag=None, ad_tag=None, sequence_tag='#EXT-X-MEDIA-SEQUENCE', asset_id_tag='vod_', provider_tag = 'ProviderId'):
         self.manifest = manifest
         self.request_url = request_url
         self.psn_tag = psn_tag
         self.ad_tag = ad_tag
         self.sequence_tag = sequence_tag
         self.asset_id_tag = asset_id_tag
+        self.provider_tag = provider_tag
         
         self.ad_ts_number = 0
         self.ad_pre_number = 0
@@ -69,7 +70,7 @@ class ManifestPaser(object):
                         self.ad_mid_position_list.append(tmp_index)
                         self.ad_mid_number += self.ad_post_number
                         self.ad_post_number = 0
-    
+
     def extract_psn_tracking_id(self, content):
         '''Get PSN tracking id'''
         p = r'\w*\W*ID=(.*),DURATION[\.\n]*'
@@ -77,10 +78,22 @@ class ManifestPaser(object):
         
         if psn_info is not None and len(psn_info) > 0:
             return psn_info[0]            
-    
+
+    '''
     def extract_asset_id(self, url):
         flag = '/.*(%s.*)/' % (self.asset_id_tag)
         p = r'\w*\W*%s[\.\n]*' % (flag)
+        t_info = re.findall(p, url)
+    
+        if t_info is not None and len(t_info) > 0:
+            return t_info[0].split('/')[0]
+        else:
+            return None
+    '''
+
+    def extract_asset_id(self, url):
+        #re.findall(r'.*ProviderId=(.*?)\&.*', url)
+        p = r'.*%s=(.*?)\&.*' %(self.provider_tag)
         t_info = re.findall(p, url)
     
         if t_info is not None and len(t_info) > 0:

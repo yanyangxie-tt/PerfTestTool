@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 import traceback
+import urlparse
 
 from apscheduler.scheduler import Scheduler
 from requests.models import Response
@@ -269,6 +270,11 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
             self.logger.debug('Index response for task[%s]:\n%s' % (task, response_text,))
             
             bitrate_url_list = manifest_util.get_bitrate_urls(response_text, self.test_bitrate_request_number, use_iframe=self.test_use_iframe, use_sap=self.test_use_sap, sap_required=self.test_require_sap, random_bitrate=self.test_bitrate_request_random, bitrate_range=self.test_bitrate_request_range)
+
+            if len(bitrate_url_list) > 0 and bitrate_url_list[0].find('http') < 0:
+                url_parser_result = urlparse.urlparse(task.get_url())
+                bitrate_url_list = ['%s://%s/%s' %(url_parser_result.scheme, url_parser_result.netloc, url) for url in bitrate_url_list]
+
             self.schedule_bitrate(task, bitrate_url_list)
             self.do_index_subsequent_step(task)
             
