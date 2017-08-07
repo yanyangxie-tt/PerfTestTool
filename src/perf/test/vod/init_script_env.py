@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append(os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../.."))
+sys.path.insert(0, os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../.."))
 
 here = os.path.dirname(os.path.realpath(__file__))
 config_sub_folder = sys.argv[2] if len(sys.argv) > 2 else ''
