@@ -1,5 +1,6 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@thistech.com
+import uuid
 
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
@@ -8,7 +9,7 @@ from utility import time_util
 
 test_type_options = ['VOD_T6', 'OTHER:VOD']
 
-index_url_format = 'http://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+index_url_format = 'http://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&sid=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
 default_vex_cluster_host='mm.vod.comcast.net'
 
 class VODPerfTest(VEXPerfTestBase):
@@ -42,7 +43,9 @@ class VODPerfTest(VEXPerfTestBase):
     
     def generate_index_url(self):
         content_name = self._get_random_content()
-        return self.index_url_format % (self.test_case_vex_cluster_host, content_name, content_name, self.test_case_type)
+        
+        sid = str(uuid.uuid4())
+        return self.index_url_format % (self.test_case_vex_cluster_host, content_name, content_name, self.test_case_type, sid)
     
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):

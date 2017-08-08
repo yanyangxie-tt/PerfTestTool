@@ -1,6 +1,6 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@thistech.com
-
+import uuid
 import string
 import random
 from time import sleep
@@ -13,7 +13,7 @@ from utility import time_util
 
 
 test_type_options = ['LINEAR_T6', 'LINEAR_TVE']
-index_url_format = 'http://%s/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&DeviceId=1'
+index_url_format = 'http://%s/%s/index.m3u8?StreamType=%s&ProviderId=%s&PartnerId=private:cox&dtz=2014-11-04T11:09:26-05:00&AssetId=abcd1234567890123456&sid=%s&DeviceId=1'
 default_vex_cluster_host='mm.linear.%s.comcast.net'
 
 
@@ -55,11 +55,10 @@ class LinearPerfTest(VEXPerfTestBase):
     
     def generate_index_url(self):
         content_name = self._get_random_content()
-
         vex_host = self.test_case_vex_cluster_host %(content_name)
         
-        print self.index_url_format % (vex_host, content_name, self.test_case_type, content_name)
-        return self.index_url_format % (vex_host, content_name, self.test_case_type, content_name)
+        sid = str(uuid.uuid4())
+        return self.index_url_format % (vex_host, content_name, self.test_case_type, content_name, sid)
     
     def dispatch_task_with_max_request(self):
         start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_seconds=2)
