@@ -351,7 +351,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                 raise Exception('Response is None')
                 
             if response.status_code != 200:
-                raise Exception('Response status code is %s' %(response.status_code))
+                raise Exception('Response status code is %s. message is: %s' %(response.status_code, response.text))
         except Exception, e:
             self.logger.error('Failed to do %s task. %s. %s' % (tag, task, e), exc_info=0)
             
