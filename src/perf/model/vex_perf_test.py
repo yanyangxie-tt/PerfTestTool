@@ -364,7 +364,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
                     response, used_time = self.get_response(task, self.test_client_request_timeout)
                     return response, used_time
                 except Exception, e:
-                    self.logger.error('Retry %s failed, %s time. task:[%s]' % (tag, retry_count, task))
+                    self.logger.error('Retry %s failed, %s time. task:[%s], error:%s' % (tag, retry_count, task, str(e)))
                     mtries -= 1
         return response, used_time
     
