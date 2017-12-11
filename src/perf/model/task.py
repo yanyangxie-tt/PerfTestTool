@@ -43,7 +43,7 @@ class ScheduledRequestsTask(RequestsTask):
         return self.timeout
 
 class VEXScheduleReqeustsTask(ScheduledRequestsTask):
-    def __init__(self, url, client_ip, zone, location, bitrate_url=None, delta_seconds=0, delta_milliseconds=0, timeout=7):
+    def __init__(self, url, client_ip, zone, location, bitrate_url=None, delta_seconds=0, delta_milliseconds=0, timeout=7, external_headers={}):
         super(VEXScheduleReqeustsTask, self).__init__(url, delta_seconds=0, delta_milliseconds=delta_milliseconds, timeout=7)
         self.client_ip = client_ip
         self.zone = zone
@@ -54,6 +54,9 @@ class VEXScheduleReqeustsTask(ScheduledRequestsTask):
         self.headers['X-Forwarded-For'] = client_ip
         self.headers['Connection'] = 'keep-alive'
         self.headers['Cookie'] = 'zone=%s;location=%s' % (zone, location)
+        
+        for key, value in external_headers.items():
+            self.headers[key] = value
     
     def get_url(self):
         return self.bitrate_url if self.bitrate_url is not None else self.url
@@ -74,7 +77,7 @@ class VEXScheduleReqeustsTask(ScheduledRequestsTask):
         return VEXScheduleReqeustsTask(self.url, self.client_ip, self.zone, self.location, self.bitrate_url, self.delta_seconds, self.delta_milliseconds)
 
     def __repr__(self):
-        return 'client_ip:%s, url:%s, bitrate_url:%s, start_date:%s' % (self.client_ip, self.url, self.bitrate_url, self.start_date)
+        return 'client_ip:%s, url:%s, bitrate_url:%s, start_date:%s, header:%s' % (self.client_ip, self.url, self.bitrate_url, self.start_date, self.headers)
 
 if __name__ == '__main__':
     task = VEXScheduleReqeustsTask('url1', '1.1.1.1', 1, 1)

@@ -47,6 +47,15 @@ class VODPerfTest(VEXPerfTestBase):
         sid = str(uuid.uuid4())
         return self.index_url_format % (self.test_case_vex_cluster_host, content_name, content_name, self.test_case_type, sid)
     
+    def generate_task_headers(self):
+        headers = {}
+        # add money-trace header
+        # X-MoneyTrace:trace-id=91a6bb69-04a4-48e1-b691-f8196e91216f;parent-id=894b9bd6-7521-4726-b653-1ddcee1e0c6d;span-id=cf7e938a-72f1-4ad1-b970-83d93c6243c1
+        money_trace_value = "trace-id=%s;parent-id=%s;span-id=%s" %(uuid.uuid4(),uuid.uuid4(),uuid.uuid4())
+        headers['X-MoneyTrace'] = money_trace_value
+
+        return headers
+    
     def schedule_bitrate(self, task, bitrate_url_list):
         for i, bitrate_url in enumerate(bitrate_url_list):
             b_task = task.clone()

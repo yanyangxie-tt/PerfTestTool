@@ -564,7 +564,12 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         client_ip = ip_util.generate_random_ip(ip_segment_range=self.ip_segment_range)
         location = self._get_random_location()
         zone = self._get_random_zone()
-        return VEXScheduleReqeustsTask(index_url, client_ip, location, zone)
+        
+        exteral_headers = self.generate_task_headers()
+        return VEXScheduleReqeustsTask(index_url, client_ip, location, zone, external_headers=exteral_headers)
+    
+    def generate_task_headers(self):
+        return {}
     
     def _init_apsched(self, gconfig):
         sched = Scheduler()
