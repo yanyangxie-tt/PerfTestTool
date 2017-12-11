@@ -55,8 +55,10 @@ class VEXScheduleReqeustsTask(ScheduledRequestsTask):
         self.headers['Connection'] = 'keep-alive'
         self.headers['Cookie'] = 'zone=%s;location=%s' % (zone, location)
         
-        for key, value in external_headers.items():
-            self.headers[key] = value
+        if len(external_headers) > 0:
+            self.external_headers = external_headers
+            for key, value in external_headers.items():
+                self.headers[key] = value
     
     def get_url(self):
         return self.bitrate_url if self.bitrate_url is not None else self.url
@@ -72,12 +74,15 @@ class VEXScheduleReqeustsTask(ScheduledRequestsTask):
     
     def get_client_ip(self):
         return self.client_ip
+    
+    def get_headers(self):
+        return self.headers
 
     def clone(self):
-        return VEXScheduleReqeustsTask(self.url, self.client_ip, self.zone, self.location, self.bitrate_url, self.delta_seconds, self.delta_milliseconds)
+        return VEXScheduleReqeustsTask(self.url, self.client_ip, self.zone, self.location, self.bitrate_url, self.delta_seconds, self.delta_milliseconds, self.timeout, self.external_headers)
 
     def __repr__(self):
-        return 'client_ip:%s, url:%s, bitrate_url:%s, start_date:%s, header:%s' % (self.client_ip, self.url, self.bitrate_url, self.start_date, self.headers)
+        return 'client_ip:%s, url:%s, bitrate_url:%s, start_date:%s, headers:%s' % (self.client_ip, self.url, self.bitrate_url, self.start_date, self.headers)
 
 if __name__ == '__main__':
     task = VEXScheduleReqeustsTask('url1', '1.1.1.1', 1, 1)

@@ -40,7 +40,11 @@ class VODPerfTest(VEXPerfTestBase):
                 self.check_percent_factor = int(1 / self.client_response_check_percent)
         else:
             self.check_percent_factor = 1
-    
+        
+        # for X-Playback-Session-Id
+        self._set_attr('test_client_x_playback_send', False, False)
+        self._set_attr('test_client_x_playback_send_index_time_gap', 500, False)
+            
     def generate_index_url(self):
         content_name = self._get_random_content()
         
@@ -53,6 +57,9 @@ class VODPerfTest(VEXPerfTestBase):
         # X-MoneyTrace:trace-id=91a6bb69-04a4-48e1-b691-f8196e91216f;parent-id=894b9bd6-7521-4726-b653-1ddcee1e0c6d;span-id=cf7e938a-72f1-4ad1-b970-83d93c6243c1
         money_trace_value = "trace-id=%s;parent-id=%s;span-id=%s" %(uuid.uuid4(),uuid.uuid4(),uuid.uuid4())
         headers['X-MoneyTrace'] = money_trace_value
+        
+        if self._has_attr('test_client_x_playback_send') is True:
+            headers['X-Playback-Session-Id'] = str(uuid.uuid4())
 
         return headers
     
@@ -65,6 +72,15 @@ class VODPerfTest(VEXPerfTestBase):
             b_task.set_start_date(start_date)
             self.logger.debug('Schedule bitrate request at %s. task:%s' % (start_date, b_task))
             self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(b_task,))
+    
+    def do_index_subsequent_step(self, task):
+        if self._has_attr('test_client_x_playback_send') is True:
+            new_task = task.clone()
+            if new_task.headers.has_key('X-Playback-Session-Id'):
+                new_task.headers.pop('X-Playback-Session-Id')
+                start_date = time_util.get_datetime_after(time_util.get_local_now(), delta_milliseconds=self.test_client_x_playback_send_index_time_gap)   
+                self.logger.debug("X-playback is enabled, send the second index at %s, task: %s" %(start_date, new_task))
+                self.task_consumer_sched.add_date_job(self.do_bitrate, start_date, args=(new_task,))
     
     def do_bitrate_subsequent_step(self, task, response_text):
         if self._has_attr('send_psn_message') is False and self._has_attr('client_response_check_when_running') is False:
