@@ -49,6 +49,7 @@ class VEXScheduleReqeustsTask(ScheduledRequestsTask):
         self.zone = zone
         self.location = location
         self.bitrate_url = bitrate_url
+        self.external_headers = {}
         
         self.headers = {}
         self.headers['X-Forwarded-For'] = client_ip
