@@ -30,7 +30,7 @@ class MultipleProcessTest(Configurations):
             time.sleep(1)
         
         for p in process_list:
-            p.terminate()
+            p.terminate()  
 
     def do_load_test(self, load_test_script, current_process_seq):
         print 'Start process(%s) to do load test' % (current_process_seq)
@@ -42,3 +42,5 @@ class MultipleProcessTest(Configurations):
 if __name__ == "__main__":
     multiple_test = MultipleProcessTest(config_file, golden_config_file=golden_config_file)
     multiple_test.run()
+    
+    

@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 # author: yanyang.xie@thistech.com
 import uuid
+import random
 
 from init_script_env import *
 from perf.model.vex_perf_test import VEXPerfTestBase
@@ -9,7 +10,7 @@ from utility import time_util
 
 test_type_options = ['VOD_T6', 'OTHER:VOD']
 
-index_url_format = 'http://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&sid=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+index_url_format = 'https://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&sid=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
 default_vex_cluster_host='mm.vod.comcast.net'
 
 class VODPerfTest(VEXPerfTestBase):
@@ -55,7 +56,7 @@ class VODPerfTest(VEXPerfTestBase):
         headers = {}
         # add money-trace header
         # X-MoneyTrace:trace-id=91a6bb69-04a4-48e1-b691-f8196e91216f;parent-id=894b9bd6-7521-4726-b653-1ddcee1e0c6d;span-id=cf7e938a-72f1-4ad1-b970-83d93c6243c1
-        money_trace_value = "trace-id=%s;parent-id=%s;span-id=%s" %(uuid.uuid4(),uuid.uuid4(),uuid.uuid4())
+        money_trace_value = "trace-id=%s;parent-id=%s;span-id=%s" %(uuid.uuid4(),random.randint(0,100000000),random.randint(0,100000000))
         headers['X-MoneyTrace'] = money_trace_value
         
         if self._has_attr('test_client_x_playback_send') is True:
@@ -90,8 +91,11 @@ class VODPerfTest(VEXPerfTestBase):
         
         checker = None
         if self._has_attr('client_response_check_when_running') is True and self.bitrate_counter.total_count % self.check_percent_factor == 0:
-            checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)
-            self.check_response(task, checker)
+            try:
+                checker = VODManifestChecker(response_text, task.get_bitrate_url(), psn_tag=self.psn_tag, ad_tag=self.client_response_ad_tag, sequence_tag=self.client_response_media_tag, asset_id_tag=self.client_response_asset_tag)
+                self.check_response(task, checker)
+            except Exception, e:
+                self.logger.error("failed to check. task:%s, exception:%s" %(task, e))
         
         if self._has_attr('send_psn_message') is True:
             if checker is None:

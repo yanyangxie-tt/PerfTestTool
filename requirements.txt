@@ -14,4 +14,4 @@ pymongo==3.2.2
 pyDes==2.0.1
 python-memcached==1.57
 selenium==2.53.6
-APScheduler
+APScheduler==2.1.2
