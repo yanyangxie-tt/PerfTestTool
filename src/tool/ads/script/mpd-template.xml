@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" xmlns:scte35="urn:scte:scte35:2014:xml+bin" xmlns:scte214="scte214" xmlns:cenc="urn:mpeg:cenc:2013" xmlns:mspr="mspr" type="static" id="Brooklyn99_223_HD_C3_AUTH_movie" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011" maxSegmentDuration="PT0H0M2.969S" minBufferTime="PT2.000S" mediaPresentationDuration="PT0H30M24.835S">  
+  <ProgramInformation schemeIdUri="urn:scte:dash:asset-id:upid:2015"> 
+    <scte214:ContentIdentifier type="URI" value="Brooklyn99_223_HD_C3_AUTH_movie"/> 
+  </ProgramInformation>  
+  <Period id="1" start="PT0H0M0.000S"> 
+    <AdaptationSet id="2" contentType="video" mimeType="video/mp4" segmentAlignment="true" startWithSAP="1"> 
+      <BaseURL>seed/</BaseURL>  
+      <ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc" cenc:default_KID="9aa8e05c-3131-e126-cf21-a6ecfa4cc623"/>  
+      <ContentProtection schemeIdUri="urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95" value="MSPR 2.0"> 
+        <cenc:pssh>RQBSAD4A</cenc:pssh> 
+      </ContentProtection>  
+      <Accessibility schemeIdUri="urn:scte:dash:cc:cea-608:2015" value="CC1=eng"/>  
+      <Role schemeIdUri="urn:mpeg:dash:role:2011" value="main"/>  
+      <SegmentTemplate initialization="format-bmff-track-video-bandwidth-$Bandwidth$-repid-$RepresentationID$-tc-0-header.mp4" media="format-bmff-track-video-bandwidth-$Bandwidth$-repid-$RepresentationID$-tc-0-frag-$Number$.mp4" timescale="90000" startNumber="1" presentationTimeOffset="187680"> 
+        <SegmentTimeline> 
+          <S t="187680" d="180180" r="450"/>  
+          <S t="367860" d="93093" r="450"/>       
+        </SegmentTimeline> 
+      </SegmentTemplate>  
+      <Representation id="379018" bandwidth="379018" codecs="avc1.4d401f" width="320" height="180"/>   
+      <Representation id="693341" bandwidth="693341" codecs="avc1.4d401f" width="512" height="288"/>  
+      <Representation id="955333" bandwidth="955333" codecs="avc1.4d401f" width="640" height="360"/>  
+      <Representation id="1427000" bandwidth="1427000" codecs="avc1.4d401f" width="768" height="432"/>  
+      <Representation id="2108207" bandwidth="2108207" codecs="avc1.4d401f" width="1024" height="576"/>  
+      <Representation id="3156243" bandwidth="3156243" codecs="avc1.4d4020" width="1280" height="720"/> 
+    </AdaptationSet>  
+    <AdaptationSet id="3" contentType="video" mimeType="video/mp4" segmentAlignment="true" startWithSAP="1" codingDependency="false" maxPlayoutRate="24"> 
+      <BaseURL>seed/</BaseURL>  
+      <ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc" cenc:default_KID="9aa8e05c-3131-e126-cf21-a6ecfa4cc623"/>  
+      <ContentProtection schemeIdUri="urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95" value="MSPR 2.0"> 
+        <cenc:pssh>QARQBSAD4A</cenc:pssh> 
+      </ContentProtection>  
+      <Role schemeIdUri="urn:mpeg:dash:role:2011" value="alternate"/>  
+      <EssentialProperty schemeIdUri="http://dashif.org/guidelines/trickmode" value="video"/>  
+      <SegmentTemplate initialization="format-bmff-track-iframe-bandwidth-$Bandwidth$-repid-$RepresentationID$-tc-0-header.mp4" media="format-bmff-track-iframe-bandwidth-$Bandwidth$-repid-$RepresentationID$-tc-0-frag-$Number$.mp4" timescale="90000" startNumber="1" presentationTimeOffset="187680"> 
+        <SegmentTimeline> 
+          <S t="187680" d="180180" r="450"/>  
+          <S t="367860" d="93093" r="450"/>
+        </SegmentTimeline> 
+      </SegmentTemplate>  
+      <Representation id="379018" bandwidth="379018" codecs="avc1.4d401f" width="320" height="180"/>   
+      <Representation id="693341" bandwidth="693341" codecs="avc1.4d401f" width="512" height="288"/>  
+      <Representation id="955333" bandwidth="955333" codecs="avc1.4d401f" width="640" height="360"/>  
+      <Representation id="1427000" bandwidth="1427000" codecs="avc1.4d401f" width="768" height="432"/>  
+      <Representation id="2108207" bandwidth="2108207" codecs="avc1.4d401f" width="1024" height="576"/>  
+      <Representation id="3156243" bandwidth="3156243" codecs="avc1.4d4020" width="1280" height="720"/> 
+    </AdaptationSet>  
+    <AdaptationSet id="4" contentType="audio" mimeType="audio/mp4" lang="en"> 
+      <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2"/>  
+      <BaseURL>seed/</BaseURL>  
+      <ContentProtection schemeIdUri="urn:mpeg:dash:mp4protection:2011" value="cenc" cenc:default_KID="9aa8e05c-3131-e126-cf21-a6ecfa4cc623"/>  
+      <ContentProtection schemeIdUri="urn:uuid:9a04f079-9840-4286-ab92-e65be0885f95" value="MSPR 2.0"> 
+        <cenc:pssh>QBSAD4A</cenc:pssh> 
+      </ContentProtection>  
+      <Role schemeIdUri="urn:mpeg:dash:role:2011" value="main"/>  
+      <SegmentTemplate initialization="format-bmff-track-audio-bandwidth-$Bandwidth$-repid-$RepresentationID$-tc-0-header.mp4" media="format-bmff-track-audio-bandwidth-$Bandwidth$-repid-$RepresentationID$-tc-0-frag-$Number$.mp4" timescale="90000" startNumber="1" presentationTimeOffset="187680"> 
+        <SegmentTimeline> 
+          <S t="187680" d="180480" r="450"/>  
+          <S t="368160" d="96000" r="450"/>  
+        </SegmentTimeline> 
+      </SegmentTemplate>  
+      <Representation id="64000" bandwidth="64000" codecs="mp4a.40.5" audioSamplingRate="24000"/>  
+      <Representation id="96000" bandwidth="96000" codecs="mp4a.40.5" audioSamplingRate="24000"/> 
+    </AdaptationSet> 
+  </Period>  
+  <SupplementalProperty schemeIdUri="urn:scte:dash:powered-by" value="viper-mod_super8-3.5.1-1"/> 
+</MPD>
