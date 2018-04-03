@@ -10,7 +10,9 @@ from utility import time_util
 
 test_type_options = ['VOD_T6', 'OTHER:VOD']
 
-index_url_format = 'https://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&sid=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+index_url_format = 'http://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&sid=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+index_url_format_https = 'https://%s/%s/king/index.m3u8?ProviderId=%s&AssetId=abcd1234567890123456&StreamType=%s&sid=%s&DeviceId=X1&PartnerId=hello&dtz=2015-04-09T18:39:05Z'
+
 default_vex_cluster_host='mm.vod.comcast.net'
 
 class VODPerfTest(VEXPerfTestBase):
@@ -27,7 +29,12 @@ class VODPerfTest(VEXPerfTestBase):
         self._set_attr('export_concurrent_number', True, True)
         self._set_attr('client_response_asset_tag', 'vod')
         self._set_attr('test_type_options', test_type_options)
-        self._set_attr('index_url_format', index_url_format)
+
+        if self._has_attr('test_case_https') is True: 
+            self._set_attr('index_url_format', index_url_format_https)
+        else:
+            self._set_attr('index_url_format', index_url_format)
+
         self._set_attr('warm_up_time_gap', 1)  # in warm up stage, time gap in each requests bundle 
         self._set_attr('test_require_sap', False)
         self._set_attr('fake_file_dir', os.path.dirname(os.path.realpath(__file__)))

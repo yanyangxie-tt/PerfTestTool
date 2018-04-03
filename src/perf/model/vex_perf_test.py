@@ -20,6 +20,7 @@ from perf.model.task import VEXScheduleReqeustsTask
 from perf.model.vex_counter import VEXMetricCounter
 from perf.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util, manifest_util
+from rsa._version133 import verify
 
 
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
@@ -79,6 +80,8 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         self._set_attr('index_summary_tag', 'Index response summary', False)
         self._set_attr('bitrate_summary_tag', 'Bitrate response summary', False)
         
+        self._set_attr('test.case.https.cert', True, False)
+
         if hasattr(self, 'test_client_vip_latest_segment_range'):
             self.ip_segment_range = vex_util.get_test_client_ip_latest_segment_range(self.test_client_vip_latest_segment_range)
         else:
@@ -346,7 +349,7 @@ class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
         # Return response and response time
         response, used_time = None, 0
         try:
-            response, used_time = self.get_response(task, self.test_client_request_timeout)
+            response, used_time = self.get_response(task, self.test_client_request_timeout, verify=self._has_attr('test_case_https_cert'))
             if response is None:
                 raise Exception('Response is None')
                 
