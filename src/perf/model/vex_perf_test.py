@@ -20,7 +20,6 @@ from perf.model.task import VEXScheduleReqeustsTask
 from perf.model.vex_counter import VEXMetricCounter
 from perf.model.vex_requests import VEXRequest
 from utility import vex_util, time_util, logger_util, ip_util, file_util, common_util, manifest_util
-from rsa._version133 import verify
 
 
 class VEXPerfTestBase(Configurations, VEXRequest, PSNEvents):
